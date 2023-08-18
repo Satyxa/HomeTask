@@ -105,3 +105,7 @@ exports.videosRouter.delete('/:id', (req, res) => {
     }
     res.sendStatus(204);
 });
+exports.videosRouter.delete('/testing/all-data', (req, res) => {
+    videos = [];
+    res.sendStatus(204);
+});

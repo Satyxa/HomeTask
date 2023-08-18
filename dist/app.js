@@ -16,15 +16,12 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const express_1 = __importDefault(require("express"));
 const videos_1 = require("./routes/videos");
 const app = (0, express_1.default)();
+const port = process.env.PORT || 5200;
 app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield res.send('privet');
 }));
 app.use(body_parser_1.default.json());
 app.use('/hometask_01/api/videos', videos_1.videosRouter);
-app.delete('/ht_01/api/testing/all-data', (req, res) => {
-    videos_1.videosRouter.videos = [];
-    res.sendStatus(204);
-});
-app.listen(5200, () => {
+app.listen(port, () => {
     console.log('server 5200 ok');
 });

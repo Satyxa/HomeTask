@@ -119,3 +119,8 @@ videosRouter.delete('/:id', (req: Request, res: Response) => {
   }
   res.sendStatus(204)
 })
+
+videosRouter.delete('/testing/all-data', (req: Request, res: Response) => {
+videos = []
+res.sendStatus(204)
+})
