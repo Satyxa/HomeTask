@@ -1,9 +1,31 @@
 
 import {Router, Response, Request} from "express";
+import {db} from "../db";
+
+type ValidationErrorType = {
+  message: string
+  field: string
+}
+
+const createVideoValidation = (errors, title, author,
+                               availableResolutions,) => {
+  if(!title || !title.trim() || title.length > 40) {
+    errors.push({message: 'invalid title', field: 'title'})
+  }
+//todo
+  if(!author || !title.trim() || title.length > 20) {
+    errors.push({message: 'invalid author', field: 'author'})
+  }
+
+  if(!availableResolutions) {
+    errors.push({message: 'invalid availableResolutions', field: 'availableResolutions'})
+  }
+  return errors
+}
 
 export const videosRouter = Router({})
-type videoT = {
-  id: string
+export type videoT = {
+  id: number
   title: string
   author: string
   canBeDownloaded: boolean
@@ -12,43 +34,16 @@ type videoT = {
   publicationDate: string
   availableResolutions: Array<string>
 }
-let videos: Array<videoT> = [
-  {
-    id: '1',
-    title: 'string',
-    author: 'string',
-    canBeDownloaded: true,
-    minAgeRestriction: null,
-    createdAt: "2023-08-17T14:01:13.893Z",
-    publicationDate: "2023-08-17T14:01:13.893Z",
-    availableResolutions: [
-    "P144"
-]
 
-  },
-  {
-    id: '5',
-    title: 'string',
-    author: 'string',
-    canBeDownloaded: true,
-    minAgeRestriction: null,
-    createdAt: "2023-08-17T14:01:13.893Z",
-    publicationDate: "2023-08-17T14:01:13.893Z",
-    availableResolutions: [
-      "P144"
-    ]
-
-  },
-]
 videosRouter.get('/', (req: Request, res: Response) => {
-  res.status(200).send(videos)
+  res.status(200).send(db.videos)
 })
 videosRouter.get('/:id', (req: Request, res: Response) => {
   const {id} = req.params
-  const video = videos.filter(v => v.id === id)
-  if(!video.length) {
+  const video = db.videos.find(v => v.id === +id)
+  if(!video) {
     res.sendStatus(404)
-  } else if(video){
+  } else{
     res.status(200).send(video)
   }
 })
@@ -56,71 +51,72 @@ videosRouter.get('/:id', (req: Request, res: Response) => {
 videosRouter.post('/', (req: Request, res: Response) => {
   const {title, author, availableResolutions} = req.body
 
-    if(title && author && availableResolutions) {
-      res.status(201).send({
-        id: '',
-        title,
-        author,
-        canBeDownloaded: true,
-        minAgeRestriction: null,
-        createdAt: "2023-08-17T14:01:13.893Z",
-        publicationDate: "2023-08-17T14:01:13.893Z",
-        availableResolutions
-      })
-    } else {
-      res.status(400).send({
-        errorsMessages: [
-          {
-            message: "string",
-            field: "string"
-          }
-        ]
-      })
-    }
+  const errors: ValidationErrorType[] = []
+
+  errors.push(createVideoValidation(errors, title, author, availableResolutions))
+  if(errors.length){
+    return res.status(400).send({
+      errorsMessages: errors
+    })
+  }
+
+  const dateNow = new Date()
+
+  const newVideo: videoT = {
+    id: db.videos.length + 1,
+    title,
+    author,
+    canBeDownloaded: false,
+    minAgeRestriction: null,
+    createdAt: dateNow.toISOString(),
+    // publicationDate: dateNow + 1 day
+    publicationDate: (dateNow + 1).toISOString(),
+    availableResolutions
+  }
+
+  db.videos.push(newVideo)
+  return res.status(201).send(newVideo)
 })
 
 videosRouter.put('/:id', (req: Request, res: Response) => {
   const {id} = req.params
+  const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
+  let video: videoT = db.videos.find(v => v.id === +id)
+  if(!video) return res.sendStatus(404)
 
-  let video:Array<videoT> = videos.filter((v) => v.id === id)
-  if(video.length === 0){
-res.status(404).send({
-  errorsMessages: [
-    {
-      message: "string",
-      field: "string"
-    }
-  ]}
-)
+  const errors: ValidationErrorType[] = []
+
+  if(!canBeDownloaded || typeof canBeDownloaded != "boolean"){
+    return errors.push({message: 'invalid canBeDownloaded', field: 'canBeDownloaded'})
   }
-  const updatedVideo:videoT = {
-    id: '1',
-    title: req.body.title || video[0].title,
-    author: req.body.author || video[0].author,
-    canBeDownloaded: req.body.canBeDownloaded === null ? video[0].canBeDownloaded : req.body.canBeDownloaded,
-    minAgeRestriction: req.body.minAgeRestriction === undefined ? video[0].minAgeRestriction : req.body.minAgeRestriction,
-    createdAt: "2023-08-17T14:01:13.893Z" || video[0].createdAt,
-    publicationDate: req.body.publicationDate || video[0].publicationDate,
-    availableResolutions: req.body.availableResolutions || video[0].availableResolutions
+  if(!minAgeRestriction || typeof minAgeRestriction != "number"){
+    return errors.push({message: 'invalid minAgeRestriction', field: 'minAgeRestriction'})
   }
-    if(!req.body) {
-      res.sendStatus(204)
-    }
-    else if(req.body){
-      res.status(200).send(updatedVideo)
+  if(!publicationDate || typeof publicationDate != "string"){
+    return errors.push({message: 'invalid canBeDownloaded', field: 'canBeDownloaded'})
   }
+
+  errors.push(createVideoValidation(errors, title, author, availableResolutions))
+
+
+
+  if(errors.length){
+    return res.status(400).send({
+      errorsMessages: errors
+    })
+  }
+
+  // todo: validation
+  // update
+  return res.sendStatus(204)
 })
 
 videosRouter.delete('/:id', (req: Request, res: Response) => {
   const {id} = req.params
-  const filterVideos = videos.filter((v) => v.id === id)
-  if(filterVideos.length === 0){
-    res.sendStatus(404)
-  }
-  res.sendStatus(204)
-})
+  let video: videoT = db.videos.find(v => v.id === +id)
+  if(!video) return res.sendStatus(404)
 
-videosRouter.delete('/testing/all-data', (req: Request, res: Response) => {
-videos = []
-res.sendStatus(204)
+  db.videos = db.videos.filter(v => v.id !== video.id)
+  res.sendStatus(204)
+
 })
