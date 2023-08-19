@@ -7,21 +7,7 @@ type ValidationErrorType = {
   field: string
 }
 
-const createVideoValidation = (errors, title, author,
-                               availableResolutions,) => {
-  if(!title || !title.trim() || title.length > 40) {
-    errors.push({message: 'invalid title', field: 'title'})
-  }
-//todo
-  if(!author || !title.trim() || title.length > 20) {
-    errors.push({message: 'invalid author', field: 'author'})
-  }
 
-  if(!availableResolutions) {
-    errors.push({message: 'invalid availableResolutions', field: 'availableResolutions'})
-  }
-  return errors
-}
 
 export const videosRouter = Router({})
 export type videoT = {
@@ -33,6 +19,22 @@ export type videoT = {
   createdAt: string
   publicationDate: string
   availableResolutions: Array<string>
+}
+
+const createVideoValidation = (title: string, author: string,
+                               availableResolutions: Array<string>) => {
+  const errors: ValidationErrorType[] = []
+  if(!title || !title.trim() || title.length > 40) {
+    errors.push({message: 'invalid title', field: 'title'})
+  }
+  if(!author || !title.trim() || title.length > 20) {
+    errors.push({message: 'invalid author', field: 'author'})
+  }
+
+  if(!availableResolutions) {
+    errors.push({message: 'invalid availableResolutions', field: 'availableResolutions'})
+  }
+  return errors
 }
 
 videosRouter.get('/', (req: Request, res: Response) => {
@@ -48,12 +50,11 @@ videosRouter.get('/:id', (req: Request, res: Response) => {
   }
 })
 
-videosRouter.post('/', (req: Request, res: Response) => {
+videosRouter.post('/',  (req: Request, res: Response) => {
   const {title, author, availableResolutions} = req.body
-
+  console.log(availableResolutions)
   const errors: ValidationErrorType[] = []
-
-  errors.push(createVideoValidation(errors, title, author, availableResolutions))
+  errors.push(...createVideoValidation(title, author, availableResolutions))
   if(errors.length){
     return res.status(400).send({
       errorsMessages: errors
@@ -69,8 +70,7 @@ videosRouter.post('/', (req: Request, res: Response) => {
     canBeDownloaded: false,
     minAgeRestriction: null,
     createdAt: dateNow.toISOString(),
-    // publicationDate: dateNow + 1 day
-    publicationDate: (dateNow + 1).toISOString(),
+    publicationDate: (dateNow.setDate(dateNow.getDate() + 1)).toString(),
     availableResolutions
   }
 
@@ -81,22 +81,22 @@ videosRouter.post('/', (req: Request, res: Response) => {
 videosRouter.put('/:id', (req: Request, res: Response) => {
   const {id} = req.params
   const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
-  let video: videoT = db.videos.find(v => v.id === +id)
+  let video = db.videos.find(v => v.id === +id)
   if(!video) return res.sendStatus(404)
 
   const errors: ValidationErrorType[] = []
 
-  if(!canBeDownloaded || typeof canBeDownloaded != "boolean"){
+  if(!canBeDownloaded || typeof canBeDownloaded !== "boolean"){
     return errors.push({message: 'invalid canBeDownloaded', field: 'canBeDownloaded'})
   }
-  if(!minAgeRestriction || typeof minAgeRestriction != "number"){
+  if(!minAgeRestriction || typeof minAgeRestriction !== "number"){
     return errors.push({message: 'invalid minAgeRestriction', field: 'minAgeRestriction'})
   }
-  if(!publicationDate || typeof publicationDate != "string"){
+  if(!publicationDate || typeof publicationDate !== "string"){
     return errors.push({message: 'invalid canBeDownloaded', field: 'canBeDownloaded'})
   }
 
-  errors.push(createVideoValidation(errors, title, author, availableResolutions))
+  errors.push(...createVideoValidation(title, author, availableResolutions))
 
 
 
@@ -105,18 +105,19 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
       errorsMessages: errors
     })
   }
-
-  // todo: validation
-  // update
   return res.sendStatus(204)
 })
 
 videosRouter.delete('/:id', (req: Request, res: Response) => {
   const {id} = req.params
-  let video: videoT = db.videos.find(v => v.id === +id)
-  if(!video) return res.sendStatus(404)
+  let video = db.videos.find(v => v.id === +id)
+  if(!video) {
+   res.sendStatus(404)
+    return
+  } else if(video){
+    db.videos = db.videos.filter((v:videoT) => v.id !== video?.id)
+    res.sendStatus(204)
+  }
 
-  db.videos = db.videos.filter(v => v.id !== video.id)
-  res.sendStatus(204)
-
+//
 })
