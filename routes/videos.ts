@@ -70,7 +70,7 @@ videosRouter.post('/',  (req: Request, res: Response) => {
     canBeDownloaded: false,
     minAgeRestriction: null,
     createdAt: dateNow.toISOString(),
-    publicationDate: (dateNow.setDate(dateNow.getDate() + 1)).toString(),
+    publicationDate: new Date(dateNow.setDate(dateNow.getDate() + 1)).toISOString(),
     availableResolutions
   }
 

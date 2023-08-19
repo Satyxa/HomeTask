@@ -4,6 +4,7 @@ type DbType = {
     videos: videoT[]
 }
 
+const dateNow = new Date()
 
 export const db: DbType = {
     videos: [
@@ -14,7 +15,7 @@ export const db: DbType = {
             canBeDownloaded: true,
             minAgeRestriction: null,
             createdAt: "2023-08-17T14:01:13.893Z",
-            publicationDate: "2023-08-17T14:01:13.893Z",
+            publicationDate: new Date(dateNow.setDate(dateNow.getDate() + 1)).toISOString(),
             availableResolutions: [
                 "P144"
             ]
@@ -27,7 +28,7 @@ export const db: DbType = {
             canBeDownloaded: true,
             minAgeRestriction: null,
             createdAt: "2023-08-17T14:01:13.893Z",
-            publicationDate: "2023-08-17T14:01:13.893Z",
+            publicationDate: new Date(dateNow.setDate(dateNow.getDate() + 1)).toISOString(),
             availableResolutions: [
                 "P144"
             ]
