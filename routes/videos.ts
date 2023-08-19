@@ -81,6 +81,7 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
   const {id} = req.params
   const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
   let video = db.videos.find(v => v.id === +id)
+  let videoId = db.videos.findIndex(v => v.id === +id)
   if(!video) return res.sendStatus(404)
 
   const errors: ValidationErrorType[] = []
@@ -127,7 +128,7 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
     availableResolutions
 
   }
-  db.videos[+id] = updatedVideo
+  db.videos[videoId] = updatedVideo
   return res.sendStatus(204)
 })
 
