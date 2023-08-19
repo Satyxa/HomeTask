@@ -14,7 +14,7 @@ export const db: DbType = {
             author: 'string',
             canBeDownloaded: true,
             minAgeRestriction: null,
-            createdAt: "2023-08-17T14:01:13.893Z",
+            createdAt: dateNow.toISOString(),
             publicationDate: new Date(dateNow.setDate(dateNow.getDate() + 1)).toISOString(),
             availableResolutions: [
                 "P144"
@@ -27,7 +27,7 @@ export const db: DbType = {
             author: 'string',
             canBeDownloaded: true,
             minAgeRestriction: null,
-            createdAt: "2023-08-17T14:01:13.893Z",
+            createdAt: dateNow.toISOString(),
             publicationDate: new Date(dateNow.setDate(dateNow.getDate() + 1)).toISOString(),
             availableResolutions: [
                 "P144"

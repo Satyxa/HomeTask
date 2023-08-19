@@ -24,10 +24,10 @@ export type videoT = {
 const createVideoValidation = (title: string, author: string,
                                availableResolutions: Array<string>) => {
   const errors: ValidationErrorType[] = []
-  if(!title || !title.trim() || title.length > 40) {
+  if(!title || !title.trim() || title.length > 40 || title !== "string") {
     errors.push({message: 'invalid title', field: 'title'})
   }
-  if(!author || !title.trim() || title.length > 20) {
+  if(!author || !author.trim() || author.length > 20 || author !== "string")  {
     errors.push({message: 'invalid author', field: 'author'})
   }
 
