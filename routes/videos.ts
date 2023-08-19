@@ -24,10 +24,10 @@ export type videoT = {
 const createVideoValidation = (title: string, author: string,
                                availableResolutions: Array<string>) => {
   const errors: ValidationErrorType[] = []
-  if(!title || !title.trim() || title.length > 40 || title !== "string") {
+  if(!title || !title.trim() || title.length > 40 ) {
     errors.push({message: 'invalid title', field: 'title'})
   }
-  if(!author || !author.trim() || author.length > 20 || author !== "string")  {
+  if(!author || !author.trim() || author.length > 20)  {
     errors.push({message: 'invalid author', field: 'author'})
   }
 
@@ -85,25 +85,49 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
 
   const errors: ValidationErrorType[] = []
 
-  if(!canBeDownloaded || typeof canBeDownloaded !== "boolean"){
-    return errors.push({message: 'invalid canBeDownloaded', field: 'canBeDownloaded'})
+  if(canBeDownloaded === undefined || typeof canBeDownloaded !== "boolean"){
+    errors.push({message: 'invalid canBeDownloaded', field: 'canBeDownloaded'})
   }
   if(!minAgeRestriction || typeof minAgeRestriction !== "number"){
-    return errors.push({message: 'invalid minAgeRestriction', field: 'minAgeRestriction'})
+    errors.push({message: 'invalid minAgeRestriction', field: 'minAgeRestriction'})
   }
   if(!publicationDate || typeof publicationDate !== "string"){
-    return errors.push({message: 'invalid canBeDownloaded', field: 'canBeDownloaded'})
+    errors.push({message: 'invalid publicationDate', field: 'publicationDate'})
   }
 
   errors.push(...createVideoValidation(title, author, availableResolutions))
-
-
+  console.log(errors)
+  const dateNow = new Date()
 
   if(errors.length){
     return res.status(400).send({
       errorsMessages: errors
     })
   }
+
+  type updatedVideoType = {
+    id: number,
+    title: string,
+    author: string,
+    canBeDownloaded: boolean,
+    minAgeRestriction: number | null,
+    createdAt: string,
+    publicationDate: string,
+    availableResolutions: Array<string>
+  }
+
+  const updatedVideo: updatedVideoType = {
+    id: +id as number,
+    title: title as string,
+    author: author as string,
+    canBeDownloaded,
+    minAgeRestriction,
+    createdAt: dateNow.toISOString(),
+    publicationDate,
+    availableResolutions
+
+  }
+  db.videos[+id] = updatedVideo
   return res.sendStatus(204)
 })
 
