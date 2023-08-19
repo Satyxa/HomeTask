@@ -123,7 +123,7 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
     author: author as string,
     canBeDownloaded,
     minAgeRestriction,
-    createdAt: dateNow.toISOString(),
+    createdAt: video.createdAt,
     publicationDate,
     availableResolutions
 
