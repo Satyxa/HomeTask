@@ -52,7 +52,6 @@ videosRouter.get('/:id', (req: Request, res: Response) => {
 
 videosRouter.post('/',  (req: Request, res: Response) => {
   const {title, author, availableResolutions} = req.body
-  console.log(availableResolutions)
   const errors: ValidationErrorType[] = []
   errors.push(...createVideoValidation(title, author, availableResolutions))
   if(errors.length){
