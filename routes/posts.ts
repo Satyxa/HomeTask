@@ -5,9 +5,7 @@ import {ValidationErrorType} from './videos'
 
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
-        if(req.headers.authorization !== 'admin:qwerty'){
-            return res.sendStatus(401)
-        }
+
         const data = atob((req.headers.authorization).replace('Basic ', ''))
         const login = data.split(':')[0]
         const password = data.split(':')[1]
