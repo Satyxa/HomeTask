@@ -7,7 +7,7 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
         const data = req.headers.authorization.replace('Basic ', '')
         const login = data.split(':')[0]
-        const password = data.split(':')[2]
+        const password = data.split(':')[1]
         if (login === 'admin' && password === 'qwerty') {
             next()
         } else {
