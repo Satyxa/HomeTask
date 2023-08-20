@@ -103,7 +103,7 @@ postsRouter.put('/:id', checkAuth, postCreateValidation, (req: Request, res: Res
             blogName: 'string'
         }
         db.posts[foundPostIndex] = foundPost
-        return res.status(200).send(db.posts)
+        return res.sendStatus(204)
     }
 })
 
@@ -116,6 +116,6 @@ postsRouter.delete('/:id', checkAuth, (req: Request, res: Response) => {
         let foundPostIndex: number = db.posts.findIndex(post => post.id === id)
         db.posts.splice(foundPostIndex)
 
-        return res.status(200).send(db.posts)
+        return res.sendStatus(204)
     }
 })
