@@ -5,9 +5,11 @@ import {ValidationErrorType} from './videos'
 
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
-        const data = req.headers.authorization.replace('Basic ', '')
+
+        const data = atob((req.headers.authorization).replace('Basic ', ''))
         const login = data.split(':')[0]
         const password = data.split(':')[1]
+        console.log(data, login, password)
         if (login === 'admin' && password === 'qwerty') {
             next()
         } else {
