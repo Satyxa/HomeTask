@@ -2,7 +2,7 @@
 import {Router, Response, Request} from "express";
 import {db} from "../db";
 
-type ValidationErrorType = {
+export type ValidationErrorType = {
   message: string
   field: string
 }
