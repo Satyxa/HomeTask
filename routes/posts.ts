@@ -39,7 +39,7 @@ const postCreateValidation = (req: Request, res: Response, next: NextFunction) =
     if (!shortDescription || !shortDescription.trim() || shortDescription.length > 100) {
         errors.push({message: 'invalid shortDescription', field: 'shortDescription'})
     }
-    if (!content || content.length > 1000) {
+    if (!content || !content.trim() || content.length > 1000) {
         errors.push({message: 'invalid content', field: 'content'})
     }
     if (!blogId || blogId.length > 5) {
