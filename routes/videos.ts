@@ -18,8 +18,12 @@ export type videoT = {
   minAgeRestriction: number | null
   createdAt: string
   publicationDate: string
-  availableResolutions: Array<string>
+  availableResolutions: Array<'P144' | 'P240' | 'P360' | 'P480' | 'P720' | 'P1080' | 'P1440' | 'P2160'>
 }
+
+const AvRes = [
+  'P144', 'P240', 'P360', 'P480', 'P720', 'P1080', 'P1440', 'P2160'
+]
 
 const createVideoValidation = (title: string, author: string,
                                availableResolutions: Array<string>) => {
@@ -33,6 +37,18 @@ const createVideoValidation = (title: string, author: string,
 
   if(!availableResolutions) {
     errors.push({message: 'invalid availableResolutions', field: 'availableResolutions'})
+  } else if(availableResolutions){
+    const stopLength = availableResolutions.length
+    let i = 0
+    while(i < stopLength){
+      availableResolutions.map(data => {
+        if(data !== AvRes[i]){
+          errors.push({message: 'invalid availableResolutions111', field: 'availableResolutions'})
+          i++
+        }
+
+      })
+    }
   }
   return errors
 }
@@ -82,14 +98,14 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
   const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
   let video = db.videos.find(v => v.id === +id)
   let videoId = db.videos.findIndex(v => v.id === +id)
-  if(!video) return res.sendStatus(404)
+  if(!video) return res.sendStatus(400)
 
   const errors: ValidationErrorType[] = []
 
   if(canBeDownloaded === undefined || typeof canBeDownloaded !== "boolean"){
     errors.push({message: 'invalid canBeDownloaded', field: 'canBeDownloaded'})
   }
-  if(!minAgeRestriction || typeof minAgeRestriction !== "number"){
+  if(!minAgeRestriction || typeof minAgeRestriction !== "number" || minAgeRestriction > 18 || minAgeRestriction < 1){
     errors.push({message: 'invalid minAgeRestriction', field: 'minAgeRestriction'})
   }
   if(!publicationDate || typeof publicationDate !== "string"){
@@ -105,7 +121,9 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
       errorsMessages: errors
     })
   }
-
+// @ts-ignore
+// @ts-ignore
+// @ts-ignore
   type updatedVideoType = {
     id: number,
     title: string,
@@ -116,7 +134,7 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
     publicationDate: string,
     availableResolutions: Array<string>
   }
-
+// @ts-ignore
   const updatedVideo: updatedVideoType = {
     id: +id as number,
     title: title as string,
@@ -128,6 +146,8 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
     availableResolutions
 
   }
+  // @ts-ignore
+  // @ts-ignore
   db.videos[videoId] = updatedVideo
   return res.sendStatus(204)
 })
