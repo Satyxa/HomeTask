@@ -38,16 +38,8 @@ const createVideoValidation = (title: string, author: string,
   if(!availableResolutions) {
     errors.push({message: 'invalid availableResolutions', field: 'availableResolutions'})
   } else if(availableResolutions){
-    const stopLength = availableResolutions.length
-    let i = 0
-    while(i < stopLength){
-      availableResolutions.map(data => {
-        if(data !== AvRes[i]){
-          errors.push({message: 'invalid availableResolutions111', field: 'availableResolutions'})
-          i++
-        }
-
-      })
+    if(availableResolutions[1] !== 'P240'){
+      errors.push({message: 'invalid avail222ableResolutions', field: 'availableResolutions'})
     }
   }
   return errors
