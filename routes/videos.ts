@@ -90,7 +90,7 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
   const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
   let video = db.videos.find(v => v.id === +id)
   let videoId = db.videos.findIndex(v => v.id === +id)
-  if(!video) return res.sendStatus(400)
+  if(!video) return res.sendStatus(404)
 
   const errors: ValidationErrorType[] = []
 
