@@ -42,10 +42,10 @@ const postCreateValidation = (req: Request, res: Response, next: NextFunction) =
     if (!content || content.length > 1000) {
         errors.push({message: 'invalid content', field: 'content'})
     }
-    if (!blogId) {
+    if (!blogId || blogId.length > 5) {
         errors.push({message: 'invalid blogId', field: 'blogId'})
     }
-    if (errors.length) {
+    if(errors.length){
         return res.status(400).send({
             errorsMessages: errors
         })
