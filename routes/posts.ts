@@ -81,7 +81,7 @@ postsRouter.post('/', checkAuth, postCreateValidation, (req: Request, res: Respo
         blogName: 'string'
     }
     db.posts.push(newPost)
-    res.status(201).send({newPost, content: db.posts})
+    res.status(201).send(newPost)
 })
 
 postsRouter.put('/:id', checkAuth, postCreateValidation, (req: Request, res: Response) => {
