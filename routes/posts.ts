@@ -46,7 +46,7 @@ const postCreateValidation = (req: Request, res: Response, next: NextFunction) =
     if (!content || !content.trim() || content.length > 1000) {
         errors.push({message: 'invalid content', field: 'content'})
     }
-    if (!blogId || blogId.includes('-')) {
+    if (!blogId) {
         errors.push({message: 'invalid blogId', field: 'blogId'})
     }
     if(errors.length){
