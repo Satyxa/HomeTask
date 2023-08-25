@@ -95,11 +95,8 @@ postsRouter.post('/', checkAuth, postCreateValidation, async (req: Request, res:
 postsRouter.put('/:id', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
     const {id} = req.params
     const {title, shortDescription, content, blogId} = req.body
-    let foundPost = patreonPosts.find({id}).toArray()
-    if (!foundPost || (await foundPost).length === 0) {
-        return res.sendStatus(404)
-    } else {
-        await patreonPosts.findOneAndUpdate({id},
+
+    const result = await patreonPosts.updateOne({id},
             {
                 $set: {
                     title,
@@ -110,8 +107,12 @@ postsRouter.put('/:id', checkAuth, postCreateValidation, async (req: Request, re
                 }
             })
 
+    if(result.matchedCount === 1){
         return res.sendStatus(204)
+    } else {
+        return res.sendStatus(404)
     }
+
 })
 
 postsRouter.delete('/:id', checkAuth,async (req: Request, res: Response) => {
