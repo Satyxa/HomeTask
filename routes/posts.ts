@@ -46,9 +46,9 @@ const postCreateValidation = (req: Request, res: Response, next: NextFunction) =
     if (!content || !content.trim() || content.length > 1000) {
         errors.push({message: 'invalid content', field: 'content'})
     }
-    // if (!blogId || blogId.length > 5) {
-    //     errors.push({message: 'invalid blogId', field: 'blogId'})
-    // }
+    if (!blogId || blogId.includes('-')) {
+        errors.push({message: 'invalid blogId', field: 'blogId'})
+    }
     if(errors.length){
         return res.status(400).send({
             errorsMessages: errors
@@ -96,7 +96,7 @@ postsRouter.put('/:id', checkAuth, postCreateValidation, async (req: Request, re
     const {id} = req.params
     const {title, shortDescription, content, blogId} = req.body
     let foundPost = patreonPosts.find({id}).toArray()
-    if (!foundPost) {
+    if (!foundPost || (await foundPost).length === 0) {
         return res.sendStatus(404)
     } else {
         await patreonPosts.findOneAndUpdate({id},
