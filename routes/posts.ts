@@ -1,7 +1,7 @@
 import {Router, Response, Request, NextFunction} from "express";
 import {client} from "../db/db";
 import {ValidationErrorType} from './videos'
-
+import * as uuid from 'uuid'
 
 
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
@@ -80,7 +80,7 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
 postsRouter.post('/', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
     const {title, shortDescription, content, blogId} = req.body
     const newPost: postT = {
-        id: '1192',
+        id: uuid.v4(),
         title,
         shortDescription,
         content,

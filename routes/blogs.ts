@@ -2,7 +2,7 @@ import {Router, Response, Request, NextFunction} from "express";
 import {client} from "../db/db";
 import {ValidationErrorType} from './videos'
 import {checkAuth} from "./posts";
-
+import * as uuid from 'uuid'
 export type blogsT = {
     id: string
     name: string
@@ -55,7 +55,7 @@ blogsRouter.get('/:id', async(req: Request, res: Response) => {
 blogsRouter.post('/',checkAuth, blogsCreateValidation, async(req: Request, res: Response) => {
     const {name, description, websiteUrl} = req.body
     const newBlog: blogsT = {
-        id: '22',
+        id: uuid.v4(),
         name,
         description,
         websiteUrl,
