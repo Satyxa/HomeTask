@@ -1,18 +1,18 @@
 import {Router, Response, Request, NextFunction} from "express";
-import {db} from "../db";
+import {client} from "../db/db";
 import {ValidationErrorType} from './videos'
+
 
 
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
-        console.log(req.headers.authorization)
+
         if(req.headers.authorization === 'Basic admin:qwerty'){
             return res.sendStatus(401)
         }
         const data = atob((req.headers.authorization).replace('Basic ', ''))
         const login = data.split(':')[0]
         const password = data.split(':')[1]
-        console.log(data, login, password)
         if (login === 'admin' && password === 'qwerty') {
             next()
         } else {
@@ -31,6 +31,7 @@ export type postT = {
     content: string
     blogId: string
     blogName: string
+    createdAt: string
 }
 // @ts-ignore
 const postCreateValidation = (req: Request, res: Response, next: NextFunction) => {
@@ -57,15 +58,18 @@ const postCreateValidation = (req: Request, res: Response, next: NextFunction) =
     }
 }
 
+const patreonPosts = client.db('patreon').collection<postT>('posts')
+
 export const postsRouter = Router({})
 
-postsRouter.get('/', (req: Request, res: Response) => {
-    res.status(200).send(db.posts)
+postsRouter.get('/', async (req: Request, res: Response) => {
+    const posts = await patreonPosts.find({}).toArray()
+    res.status(200).send(posts)
 })
 // @ts-ignore
-postsRouter.get('/:id', (req: Request, res: Response) => {
+postsRouter.get('/:id', async (req: Request, res: Response) => {
     const {id} = req.params
-    const foundPost = db.posts.find(post => post.id === id)
+    const foundPost = await patreonPosts.find({id}).toArray()
     if (!foundPost) {
         return res.sendStatus(404)
     } else {
@@ -73,50 +77,47 @@ postsRouter.get('/:id', (req: Request, res: Response) => {
     }
 })
 
-postsRouter.post('/', checkAuth, postCreateValidation, (req: Request, res: Response) => {
+postsRouter.post('/', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
     const {title, shortDescription, content, blogId} = req.body
     const newPost: postT = {
-        id: (db.posts.length + 1).toString(),
+        id: '1192',
         title,
         shortDescription,
         content,
         blogId,
-        blogName: 'string'
+        blogName: 'string',
+        createdAt: new Date().toISOString()
     }
-    db.posts.push(newPost)
+    await patreonPosts.insertOne(newPost)
     res.status(201).send(newPost)
 })
 
-postsRouter.put('/:id', checkAuth, postCreateValidation, (req: Request, res: Response) => {
+postsRouter.put('/:id', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
     const {id} = req.params
     const {title, shortDescription, content, blogId} = req.body
-    let foundPost: postT = db.posts.find(post => post.id === id)
+    let foundPost = patreonPosts.find({id}).toArray()
     if (!foundPost) {
         return res.sendStatus(404)
     } else {
-        let foundPostIndex: number = db.posts.findIndex(post => post.id === id)
-        foundPost = {
-            id,
-            title,
-            shortDescription,
-            content,
-            blogId,
-            blogName: 'string'
-        }
-        db.posts[foundPostIndex] = foundPost
+        await patreonPosts.findOneAndUpdate({id},
+            {
+                title,
+                shortDescription,
+                content,
+                blogId,
+                blogName: 'string'
+            })
+
         return res.sendStatus(204)
     }
 })
 
-postsRouter.delete('/:id', checkAuth, (req: Request, res: Response) => {
+postsRouter.delete('/:id', checkAuth,async (req: Request, res: Response) => {
     const {id} = req.params
-    const foundPost = db.posts.find(post => post.id === id)
-    if (!foundPost) {
-        return res.sendStatus(404)
-    } else {
-        let foundPostIndex: number = db.posts.findIndex(post => post.id === id)
-        db.posts.splice(foundPostIndex)
-
+    const result = await patreonPosts.deleteOne({id})
+    if(result.deletedCount === 1){
         return res.sendStatus(204)
+    } else {
+        return res.sendStatus(404)
     }
 })

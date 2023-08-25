@@ -1,8 +1,6 @@
 import {Router, Response, Request, NextFunction} from "express";
-import {db} from "../db";
-import * as uuid from 'uuid'
+import {client} from "../db/db";
 import {ValidationErrorType} from './videos'
-import {body} from "express-validator";
 import {checkAuth} from "./posts";
 
 export type blogsT = {
@@ -10,8 +8,12 @@ export type blogsT = {
     name: string
     description: string
     websiteUrl: string
+    isMembership: boolean
+    createdAt: string
 }
 // @ts-ignore
+const patreonBlogs = client.db('patreon').collection<blogsT>('blogs')
+
 const blogsCreateValidation = (req: Request, res: Response, next: NextFunction) => {
     const {name, description, websiteUrl} = req.body
     const errors:ValidationErrorType[] = []
@@ -35,13 +37,14 @@ const blogsCreateValidation = (req: Request, res: Response, next: NextFunction) 
 
 export const blogsRouter = Router({})
 
-blogsRouter.get('/', (req: Request, res: Response) => {
-    res.status(200).send(db.blogs)
+blogsRouter.get('/', async(req: Request, res: Response) => {
+    const blogs = await patreonBlogs.find({}).toArray()
+    res.status(200).send(blogs)
 })
-// @ts-ignore
-blogsRouter.get('/:id', (req: Request, res: Response) => {
+
+blogsRouter.get('/:id', async(req: Request, res: Response) => {
     const {id} = req.params
-    const foundBlog = db.blogs.find(blog => blog.id === id)
+    const foundBlog = await patreonBlogs.find({id}).toArray()
     if(!foundBlog){
         return res.sendStatus(404)
     } else {
@@ -49,47 +52,47 @@ blogsRouter.get('/:id', (req: Request, res: Response) => {
     }
 })
 
-blogsRouter.post('/',checkAuth, blogsCreateValidation,(req: Request, res: Response) => {
+blogsRouter.post('/',checkAuth, blogsCreateValidation, async(req: Request, res: Response) => {
     const {name, description, websiteUrl} = req.body
     const newBlog: blogsT = {
-        id: (db.blogs.length + 1).toString(),
+        id: '22',
         name,
         description,
-        websiteUrl
+        websiteUrl,
+        isMembership: false,
+        createdAt: new Date().toISOString()
     }
-    db.blogs.push(newBlog)
+    await patreonBlogs.insertOne(newBlog)
     res.status(201).send(newBlog)
 })
 
-blogsRouter.put('/:id',checkAuth,  blogsCreateValidation,(req:Request, res: Response)=>{
+blogsRouter.put('/:id',checkAuth,  blogsCreateValidation, async(req:Request, res: Response)=>{
     const {id} = req.params
     const {name, description, websiteUrl} = req.body
-    let foundBlog: blogsT = db.blogs.find(blog => blog.id === id)
-    if(!foundBlog){
-        return res.sendStatus(404)
-    } else {
-        let foundBlogIndex: number = db.blogs.findIndex(blog => blog.id === id)
-        foundBlog = {
+
+        const result = await patreonBlogs.updateOne({id}, {
             id,
             name,
             description,
             websiteUrl
+        })
+        if(result.matchedCount === 1){
+            return res.sendStatus(204)
+        } else {
+            return res.sendStatus(404)
         }
-        db.blogs[foundBlogIndex] = foundBlog
-        return res.sendStatus(204)
-    }
+
 })
 
-blogsRouter.delete('/:id',checkAuth, (req: Request, res: Response) => {
+blogsRouter.delete('/:id',checkAuth, async (req: Request, res: Response) => {
     const {id} = req.params
-    const foundBlog = db.blogs.find(blog => blog.id === id)
-    if(!foundBlog){
-        return res.sendStatus(404)
-    } else {
-        let foundBlogIndex: number = db.blogs.findIndex(blog => blog.id === id)
-        db.blogs.splice(foundBlogIndex)
+    const result = await patreonBlogs.deleteOne({id})
 
+    if(result.deletedCount === 1){
         return res.sendStatus(204)
+    } else {
+        return res.sendStatus(404)
     }
+
 })
 

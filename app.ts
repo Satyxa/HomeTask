@@ -1,6 +1,6 @@
 import express, {Request, Response} from 'express'
 import {videosRouter} from "./routes/videos";
-import {db} from "./db";
+import {runDB} from "./db/db";
 import {blogsRouter} from "./routes/blogs";
 import {postsRouter} from "./routes/posts";
 
@@ -15,13 +15,19 @@ app.use('/blogs', blogsRouter)
 app.use('/posts', postsRouter)
 
 app.delete('/testing/all-data', (req: Request, res: Response) => {
-  db.videos = []
-  db.blogs = []
-  db.posts = []
+  // db.videos = []
+  // db.blogs = []
+  // db.posts = []
   res.sendStatus(204)
 })
 
-app.listen(port, () => {
-  console.log( 'server 5200 ok')
-})
+const startApp = async () => {
+  await runDB()
+  return app.listen(port, () => {
+    console.log( 'server 5200 ok')
+  })
+}
+
+startApp()
+
 

@@ -1,6 +1,6 @@
 
 import {Router, Response, Request} from "express";
-import {db} from "../db";
+import {client} from "../db/db";
 
 export type ValidationErrorType = {
   message: string
@@ -20,7 +20,7 @@ export type videoT = {
   publicationDate: string
   availableResolutions: Array<'P144' | 'P240' | 'P360' | 'P480' | 'P720' | 'P1080' | 'P1440' | 'P2160'>
 }
-
+const patreonVideos = client.db('patreon').collection<videoT>('videos')
 const AvRes = [
   'P144', 'P240', 'P360', 'P480', 'P720', 'P1080', 'P1440', 'P2160'
 ]
@@ -45,20 +45,23 @@ const createVideoValidation = (title: string, author: string,
   return errors
 }
 
-videosRouter.get('/', (req: Request, res: Response) => {
-  res.status(200).send(db.videos)
+videosRouter.get('/', async (req: Request, res: Response) => {
+  const videos = await patreonVideos.find({}).toArray()
+  res.status(200).send(videos)
 })
-videosRouter.get('/:id', (req: Request, res: Response) => {
+// @ts-ignore
+videosRouter.get('/:id', async(req: Request, res: Response) => {
   const {id} = req.params
-  const video = db.videos.find(v => v.id === +id)
+  // @ts-ignore
+  const video = await patreonVideos.find({id}).toArray()
   if(!video) {
     res.sendStatus(404)
   } else{
     res.status(200).send(video)
   }
 })
-
-videosRouter.post('/',  (req: Request, res: Response) => {
+// @ts-ignore
+videosRouter.post('/',  async (req: Request, res: Response) => {
   const {title, author, availableResolutions} = req.body
   const errors: ValidationErrorType[] = []
   errors.push(...createVideoValidation(title, author, availableResolutions))
@@ -71,7 +74,7 @@ videosRouter.post('/',  (req: Request, res: Response) => {
   const dateNow = new Date()
 
   const newVideo: videoT = {
-    id: db.videos.length + 1,
+    id: 11,
     title,
     author,
     canBeDownloaded: false,
@@ -81,17 +84,18 @@ videosRouter.post('/',  (req: Request, res: Response) => {
     availableResolutions
   }
 
-  db.videos.push(newVideo)
+  await patreonVideos.insertOne(newVideo)
   return res.status(201).send(newVideo)
 })
 
-videosRouter.put('/:id', (req: Request, res: Response) => {
+videosRouter.put('/:id', async (req: Request, res: Response) => {
   const {id} = req.params
   const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
-  let video = db.videos.find(v => v.id === +id)
-  let videoId = db.videos.findIndex(v => v.id === +id)
-  if(!video) return res.sendStatus(404)
-
+  //@ts-ignore
+  const video = await patreonVideos.find({id})
+  if(!video) {
+    res.sendStatus(404)
+  }
   const errors: ValidationErrorType[] = []
 
   if(canBeDownloaded === undefined || typeof canBeDownloaded !== "boolean"){
@@ -105,7 +109,6 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
   }
 
   errors.push(...createVideoValidation(title, author, availableResolutions))
-  console.log(errors)
   const dateNow = new Date()
 
   if(errors.length){
@@ -133,6 +136,7 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
     author: author as string,
     canBeDownloaded,
     minAgeRestriction,
+    // @ts-ignore
     createdAt: video.createdAt,
     publicationDate,
     availableResolutions
@@ -140,20 +144,22 @@ videosRouter.put('/:id', (req: Request, res: Response) => {
   }
   // @ts-ignore
   // @ts-ignore
-  db.videos[videoId] = updatedVideo
-  return res.sendStatus(204)
+  const result = await patreonVideos.updateOne({id}, updatedVideo)
+  if(result.matchedCount === 1) {
+    return res.sendStatus(204)
+  } else {
+    return res.sendStatus(400)
+  }
 })
 
-videosRouter.delete('/:id', (req: Request, res: Response) => {
+videosRouter.delete('/:id', async (req: Request, res: Response) => {
   const {id} = req.params
-  let video = db.videos.find(v => v.id === +id)
-  if(!video) {
-   res.sendStatus(404)
-    return
-  } else if(video){
-    db.videos = db.videos.filter((v:videoT) => v.id !== video?.id)
+  //@ts-ignore
+  const result = await patreonVideos.deleteOne({id})
+  if(result.deletedCount === 1){
     res.sendStatus(204)
+  } else {
+    res.sendStatus(404)
   }
-
 //
 })
