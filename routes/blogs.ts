@@ -48,7 +48,7 @@ blogsRouter.get('/:id', async(req: Request, res: Response) => {
     if(!foundBlog || foundBlog.length === 0){
         return res.sendStatus(404)
     } else {
-        res.status(200).send(foundBlog)
+        res.status(200).send([...foundBlog])
     }
 })
 
