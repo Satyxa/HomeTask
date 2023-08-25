@@ -73,7 +73,7 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
     if (!foundPost || foundPost.length === 0) {
         return res.sendStatus(404)
     } else {
-        res.status(200).send([...foundPost])
+        res.status(200).send(foundPost[0])
     }
 })
 
