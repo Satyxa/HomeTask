@@ -45,7 +45,7 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
 blogsRouter.get('/:id', async(req: Request, res: Response) => {
     const {id} = req.params
     const foundBlog = await patreonBlogs.find({id}).toArray()
-    if(!foundBlog){
+    if(!foundBlog || foundBlog.length === 0){
         return res.sendStatus(404)
     } else {
         res.status(200).send(foundBlog)
@@ -71,10 +71,12 @@ blogsRouter.put('/:id',checkAuth,  blogsCreateValidation, async(req:Request, res
     const {name, description, websiteUrl} = req.body
 
         const result = await patreonBlogs.updateOne({id}, {
-            id,
-            name,
-            description,
-            websiteUrl
+            $set: {
+                id,
+                name,
+                description,
+                websiteUrl
+            }
         })
         if(result.matchedCount === 1){
             return res.sendStatus(204)
