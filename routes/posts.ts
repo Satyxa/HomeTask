@@ -46,9 +46,7 @@ export const postCreateValidation = async (req: Request, res: Response, next: Ne
     if (!content || !content.trim() || content.length > 1000) {
         errors.push({message: 'invalid content', field: 'content'})
     }
-    if (!blogId) {
-        errors.push({message: 'invalid blogId', field: 'blogId'})
-    }else if(blogId) {
+    if(blogId) {
         const result = await patreonBlogs.find({id: blogId}).toArray()
         if(result.length === 0){
             errors.push({message: 'no such blog', field: 'blogId'})

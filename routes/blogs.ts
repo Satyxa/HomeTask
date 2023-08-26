@@ -53,7 +53,7 @@ blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request
     if(!blogs || blogs.length === 0){
         return res.sendStatus(404)
     }
-    const {title, shortDescription, content, blogId} = req.body
+    const {title, shortDescription, content} = req.body
     const newPost: postT = {
         id: uuid.v4(),
         title,
