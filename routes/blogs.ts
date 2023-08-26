@@ -44,6 +44,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
     }
     const pageNumber:number = req.query.pageNumber ? +req.query.pageNumber : 1
     const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
+    let sortBy = req.query.sortBy || 'createdAt'
     let sortDirection = "desc"
     if(req.query.sortDirection){
         if(req.query.sortDirection === 'asc'){
@@ -52,7 +53,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
     }
     const posts = await patreonPosts
         .find({blogId: id}, { projection : { _id:0 }})
-        .sort({createdAt: sortDirection === 'desc' ? -1 : 1})
+        .sort({sortBy: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
         .toArray()
