@@ -33,7 +33,7 @@ export type postT = {
     blogName: string
     createdAt: string
 }
-// @ts-ignore
+
 export const postCreateValidation = async (req: Request, res: Response, next: NextFunction) => {
     const {title, shortDescription, content, blogId} = req.body
     const errors: ValidationErrorType[] = []
@@ -67,12 +67,12 @@ export const postsRouter = Router({})
 
 postsRouter.get('/', async (req: Request, res: Response) => {
         const {page} = req.query.page ? req.query.page : 1
-        const posts = await patreonPosts.find({}, { projection : { _id:0 }}).sort({createdAt: 1}).skip(10 * page - 10).limit(10).toArray()
+        const posts = await patreonPosts.find({}, { projection : { _id:0 }}).sort({createdAt: -1}).skip(10 * page - 10).limit(10).toArray()
         const totalCount = await patreonPosts.count({})
         const pagesCount = Math.ceil(totalCount / 10)
         return res.status(200).send({pagesCount,page: req.query.page ? req.query.page : 1,pageSize:10,totalCount,items: posts})
 })
-// @ts-ignore
+
 postsRouter.get('/:id', async (req: Request, res: Response) => {
     const {id} = req.params
     const foundPost = await patreonPosts.find({id}, { projection : { _id:0 }}).toArray()
