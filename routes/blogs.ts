@@ -38,7 +38,8 @@ const blogsCreateValidation = (req: Request, res: Response, next: NextFunction) 
 export const blogsRouter = Router({})
 
 blogsRouter.get('/', async(req: Request, res: Response) => {
-    const blogs = await patreonBlogs.find({}).toArray()
+
+    const blogs = await patreonBlogs.find({}, { projection : { _id:0 }}).toArray()
     res.status(200).send(blogs)
 })
 

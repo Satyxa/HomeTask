@@ -63,7 +63,7 @@ const patreonPosts = client.db('patreon').collection<postT>('posts')
 export const postsRouter = Router({})
 
 postsRouter.get('/', async (req: Request, res: Response) => {
-    const posts = await patreonPosts.find({}).toArray()
+    const posts = await patreonPosts.find({}, { projection : { _id:0 }}).toArray()
     res.status(200).send(posts)
 })
 // @ts-ignore
