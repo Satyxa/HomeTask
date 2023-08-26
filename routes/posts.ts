@@ -66,19 +66,20 @@ export const postCreateValidation = async (req: Request, res: Response, next: Ne
 export const postsRouter = Router({})
 
 postsRouter.get('/', async (req: Request, res: Response) => {
-        const {pageNumber}:number = +req.query.pageNumber ? +req.query.pageNumber : 1
-    const {pageSize}:number = +req.query.pageSize ? +req.query.pageSize : 10
+        const pageNumber:number = req.query.pageNumber ? +req.query.pageNumber : 1
+        const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
         const posts = await patreonPosts
             .find({}, { projection : { _id:0 }})
             .sort({createdAt: -1})
-            .skip(pageSize * pageNumber - pageSize)
+
+            .skip(pageSize *pageNumber - pageSize)
             .limit(pageSize)
             .toArray()
-        const totalCount = await patreonPosts.count({})
+        const totalCount = await patreonPosts.countDocuments({})
         const pagesCount = Math.ceil(totalCount / pageSize)
         return res.status(200).send({pagesCount,
-            page: +req.query.pageNumber ? +req.query.pageNumber : 1,
-            pageSize:+req.query.pageSize ? +req.query.pageSize : 10,
+            page: req.query.pageNumber ? req.query.pageNumber : 1,
+            pageSize:req.query.pageSize ? req.query.pageSize : 10,
             totalCount,
             items: posts})
 })

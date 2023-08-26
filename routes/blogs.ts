@@ -42,8 +42,8 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
     if(!findBlog || findBlog.length === 0){
         return res.sendStatus(404)
     }
-    const {pageNumber}:number = +req.query.pageNumber ? +req.query.pageNumber : 1
-    const {pageSize}:number = +req.query.pageSize ? +req.query.pageSize : 10
+    const pageNumber:number = req.query.pageNumber ? +req.query.pageNumber : 1
+    const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
     const posts = await patreonPosts
         .find({blogId: id}, { projection : { _id:0 }})
         .sort({createdAt: -1})
@@ -51,13 +51,13 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
         .limit(pageSize)
         .toArray()
 
-    const totalCount = await patreonPosts.count({blogId: id})
+    const totalCount = await patreonPosts.countDocuments({blogId: id})
     const pagesCount = Math.ceil(totalCount / pageSize)
     return res
         .status(200)
         .send({pagesCount,
-            page: +req.query.pageNumber ? +req.query.pageNumber : 1,
-            pageSize:+req.query.pageSize ? +req.query.pageSize : 10 ,
+            page: pageNumber,
+            pageSize,
             totalCount,
             items: posts})
 })
@@ -83,23 +83,23 @@ blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request
 })
 
 blogsRouter.get('/', async(req: Request, res: Response) => {
-        const {pageNumber}:number = +req.query.pageNumber ? +req.query.pageNumber : 1
-    const {pageSize}:number = +req.query.pageSize ? +req.query.pageSize : 10
+        const pageNumber:number = req.query.pageNumber ? +req.query.pageNumber : 1
+    const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
     const blogs = await patreonBlogs
         .find({}, { projection : { _id:0 }})
         .sort({createdAt: -1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
         .toArray()
-        const totalCount = await patreonBlogs.count({})
+        const totalCount = await patreonBlogs.countDocuments({})
         const pagesCount = Math.ceil(totalCount / pageSize)
         return res
             .status(200)
             .send(
                 {
                     pagesCount,
-                    page: +req.query.pageNumber ? +req.query.pageNumber : 1,
-                    pageSize:+req.query.pageSize ? +req.query.pageSize : 10,
+                    page: pageNumber,
+                    pageSize,
                     totalCount,
                     items: blogs
                 })
