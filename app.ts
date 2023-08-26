@@ -1,5 +1,5 @@
-import express, {Request, Response} from 'express'
-import {videosRouter} from "./routes/videos";
+import express, {NextFunction, Request, Response} from 'express'
+import {ValidationErrorType, videosRouter} from "./routes/videos";
 import {runDB} from "./db/db";
 import {blogsRouter} from "./routes/blogs";
 import {postsRouter} from "./routes/posts";
@@ -9,6 +9,8 @@ const port = process.env.PORT || 5200
 app.get('/', async (req: Request, res: Response) => {
   await res.send('privet')
 })
+
+
 app.use(express.json());
 app.use('/videos', videosRouter)
 app.use('/blogs', blogsRouter)
@@ -20,6 +22,7 @@ app.delete('/testing/all-data', (req: Request, res: Response) => {
   // db.posts = []
   res.sendStatus(204)
 })
+
 
 const startApp = async () => {
   await runDB()

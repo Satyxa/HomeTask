@@ -2,8 +2,8 @@ import {Router, Response, Request, NextFunction} from "express";
 import {client} from "../db/db";
 import {ValidationErrorType} from './videos'
 import * as uuid from 'uuid'
-
-
+import {blogsRouter, patreonBlogs} from "./blogs";
+const patreonPosts = client.db('patreon').collection<postT>('posts')
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
 
@@ -34,7 +34,7 @@ export type postT = {
     createdAt: string
 }
 // @ts-ignore
-const postCreateValidation = (req: Request, res: Response, next: NextFunction) => {
+const postCreateValidation = async (req: Request, res: Response, next: NextFunction) => {
     const {title, shortDescription, content, blogId} = req.body
     const errors: ValidationErrorType[] = []
     if (!title || !title.trim() || title.length > 30) {
@@ -48,6 +48,12 @@ const postCreateValidation = (req: Request, res: Response, next: NextFunction) =
     }
     if (!blogId) {
         errors.push({message: 'invalid blogId', field: 'blogId'})
+    }else if(blogId) {
+        const result = await patreonBlogs.find({id: blogId}).toArray()
+        console.log(result)
+        if(result.length === 0){
+            errors.push({message: 'no such blog', field: 'blogId'})
+        }
     }
     if(errors.length){
         return res.status(400).send({
@@ -58,7 +64,7 @@ const postCreateValidation = (req: Request, res: Response, next: NextFunction) =
     }
 }
 
-const patreonPosts = client.db('patreon').collection<postT>('posts')
+
 
 export const postsRouter = Router({})
 

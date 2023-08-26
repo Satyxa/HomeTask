@@ -12,7 +12,7 @@ export type blogsT = {
     createdAt: string
 }
 // @ts-ignore
-const patreonBlogs = client.db('patreon').collection<blogsT>('blogs')
+export const patreonBlogs = client.db('patreon').collection<blogsT>('blogs')
 
 const blogsCreateValidation = (req: Request, res: Response, next: NextFunction) => {
     const {name, description, websiteUrl} = req.body
