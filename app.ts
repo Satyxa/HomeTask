@@ -1,5 +1,5 @@
-import express, {NextFunction, Request, Response} from 'express'
-import {ValidationErrorType, videosRouter} from "./routes/videos";
+import express, { Request, Response} from 'express'
+import { videosRouter} from "./routes/videos";
 import {runDB} from "./db/db";
 import {blogsRouter} from "./routes/blogs";
 import {postsRouter} from "./routes/posts";
