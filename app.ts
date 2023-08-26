@@ -3,6 +3,9 @@ import { videosRouter} from "./routes/videos";
 import {runDB} from "./db/db";
 import {blogsRouter} from "./routes/blogs";
 import {postsRouter} from "./routes/posts";
+import {patreonBlogs} from './routes/blogs'
+import {patreonPosts} from './routes/posts'
+import {patreonVideos} from './routes/videos'
 
 const app = express();
 const port = process.env.PORT || 5200
@@ -16,10 +19,10 @@ app.use('/videos', videosRouter)
 app.use('/blogs', blogsRouter)
 app.use('/posts', postsRouter)
 
-app.delete('/testing/all-data', (req: Request, res: Response) => {
-  // db.videos = []
-  // db.blogs = []
-  // db.posts = []
+app.delete('/testing/all-data', async(req: Request, res: Response) => {
+  await patreonBlogs.deleteMany({})
+  await patreonPosts.deleteMany({})
+  await patreonVideos.deleteMany({})
   res.sendStatus(204)
 })
 

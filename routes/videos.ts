@@ -20,7 +20,7 @@ export type videoT = {
   publicationDate: string
   availableResolutions: Array<'P144' | 'P240' | 'P360' | 'P480' | 'P720' | 'P1080' | 'P1440' | 'P2160'>
 }
-const patreonVideos = client.db('patreon').collection<videoT>('videos')
+export const patreonVideos = client.db('patreon').collection<videoT>('videos')
 const AvRes = [
   'P144', 'P240', 'P360', 'P480', 'P720', 'P1080', 'P1440', 'P2160'
 ]
