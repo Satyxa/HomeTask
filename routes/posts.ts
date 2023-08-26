@@ -67,7 +67,7 @@ export const postsRouter = Router({})
 
 postsRouter.get('/', async (req: Request, res: Response) => {
         const {page} = req.query.page ? req.query.page : 1
-        const posts = await patreonPosts.find({}, { projection : { _id:0 }}).skip(10 * page - 10).limit(10).toArray()
+        const posts = await patreonPosts.find({}, { projection : { _id:0 }}).sort({createdAt: 1}).skip(10 * page - 10).limit(10).toArray()
         const totalCount = await patreonPosts.count({})
         const pagesCount = Math.ceil(totalCount / 10)
         return res.status(200).send({pagesCount,page: req.query.page ? req.query.page : 1,pageSize:10,totalCount,items: posts})
