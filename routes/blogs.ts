@@ -68,13 +68,11 @@ blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request
 })
 
 blogsRouter.get('/', async(req: Request, res: Response) => {
-    if(req.query){
         const {page} = req.query || 1
         const blogs = await patreonBlogs.find({}, { projection : { _id:0 }}).skip(10 * page - 10).limit(10).toArray()
         const totalCount = await patreonBlogs.count({})
         const pagesCount = Math.ceil(totalCount / 10)
         return res.status(200).send({pagesCount,page,pageSize:10,totalCount,items: blogs})
-    }
 })
 
 blogsRouter.get('/:id', async(req: Request, res: Response) => {
