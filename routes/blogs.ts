@@ -45,7 +45,7 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
 
 blogsRouter.get('/:id', async(req: Request, res: Response) => {
     const {id} = req.params
-    const foundBlog = await patreonBlogs.find({id}, { projection : { _id:0 }}).toArray()
+    const foundBlog = await patreonBlogs.find({id}).toArray()
     if(!foundBlog || foundBlog.length === 0){
         return res.sendStatus(404)
     } else {
