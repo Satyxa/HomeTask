@@ -39,12 +39,16 @@ export const blogsRouter = Router({})
 
 blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
     const {id} = req.params
-    const blogs = await patreonBlogs.find({id}, { projection : { _id:0 }}).toArray()
-    if(!blogs || blogs.length === 0){
+    const findBlog = await patreonBlogs.find({id}, { projection : { _id:0 }}).toArray()
+    if(!findBlog || findBlog.length === 0){
         return res.sendStatus(404)
     }
-    const allPostsForBlog = await patreonPosts.find({blogId: id}, {projection: {_id: 0}}).toArray()
-    res.status(200).send(allPostsForBlog)
+    const {page} = req.query || 1
+    const posts = await patreonPosts.find({blogId: id}).skip(10 * page - 10).limit(10).toArray()
+
+    const totalCount = await patreonPosts.count({blogId: id})
+    const pagesCount = Math.ceil(totalCount / 10)
+    return res.status(200).send({pagesCount,page,pageSize:10,totalCount,items: posts})
 })
 
 blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request, res: Response) => {
