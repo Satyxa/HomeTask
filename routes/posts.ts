@@ -68,9 +68,16 @@ export const postsRouter = Router({})
 postsRouter.get('/', async (req: Request, res: Response) => {
         const pageNumber:number = req.query.pageNumber ? +req.query.pageNumber : 1
         const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
+        let sortDirection = "desc"
+    if(req.query.sortDirection){
+        if(req.query.sortDirection === 'asc'){
+            sortDirection = 'asc'
+        }
+    }
         const posts = await patreonPosts
             .find({}, { projection : { _id:0 }})
-            .sort({createdAt: 1})
+            //@ts-ignore
+            .sort({createdAt: sortDirection === 'desc' ? -1 : 1})
 
             .skip(pageSize *pageNumber - pageSize)
             .limit(pageSize)
