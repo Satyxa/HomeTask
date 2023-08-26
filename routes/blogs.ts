@@ -46,7 +46,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
     const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
     const posts = await patreonPosts
         .find({blogId: id}, { projection : { _id:0 }})
-        .sort({createdAt: -1})
+        .sort({createdAt: 1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
         .toArray()
@@ -87,7 +87,7 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
     const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
     const blogs = await patreonBlogs
         .find({}, { projection : { _id:0 }})
-        .sort({createdAt: -1})
+        .sort({createdAt: 1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
         .toArray()

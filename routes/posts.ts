@@ -70,7 +70,7 @@ postsRouter.get('/', async (req: Request, res: Response) => {
         const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
         const posts = await patreonPosts
             .find({}, { projection : { _id:0 }})
-            .sort({createdAt: -1})
+            .sort({createdAt: 1})
 
             .skip(pageSize *pageNumber - pageSize)
             .limit(pageSize)
