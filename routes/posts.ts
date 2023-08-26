@@ -69,7 +69,7 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 // @ts-ignore
 postsRouter.get('/:id', async (req: Request, res: Response) => {
     const {id} = req.params
-    const foundPost = await patreonPosts.find({id}).toArray()
+    const foundPost = await patreonPosts.find({id}, { projection : { _id:0 }}).toArray()
     if (!foundPost || foundPost.length === 0) {
         return res.sendStatus(404)
     } else {
