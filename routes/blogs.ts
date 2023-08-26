@@ -44,7 +44,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
         return res.sendStatus(404)
     }
     const {page} = req.query.page ? req.query.page : 1
-    const posts = await patreonPosts.find({blogId: id}).skip(10 * page - 10).limit(10).toArray()
+    const posts = await patreonPosts.find({blogId: id}, { projection : { _id:0 }}).skip(10 * page - 10).limit(10).toArray()
 
     const totalCount = await patreonPosts.count({blogId: id})
     const pagesCount = Math.ceil(totalCount / 10)
