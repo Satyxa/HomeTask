@@ -43,11 +43,12 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
         return res.sendStatus(404)
     }
     const {page} = req.query.page ? req.query.page : 1
-    const posts = await patreonPosts.find({blogId: id}, { projection : { _id:0 }}).sort({createdAt: -1}).skip(10 * page - 10).limit(10).toArray()
+    const {pageSize} = req.query.pageSize ? req.query.pageSize : 10
+    const posts = await patreonPosts.find({blogId: id}, { projection : { _id:0 }}).sort({createdAt: -1}).skip(pageSize * page - pageSize).limit(pageSize).toArray()
 
     const totalCount = await patreonPosts.count({blogId: id})
-    const pagesCount = Math.ceil(totalCount / 10)
-    return res.status(200).send({pagesCount,page: req.query.page ? req.query.page : 1,pageSize:10,totalCount,items: posts})
+    const pagesCount = Math.ceil(totalCount / pageSize)
+    return res.status(200).send({pagesCount,page: req.query.page ? req.query.page : 1,pageSize:req.query.pageSize ? req.query.pageSize : 10 ,totalCount,items: posts})
 })
 
 blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request, res: Response) => {
@@ -72,10 +73,11 @@ blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request
 
 blogsRouter.get('/', async(req: Request, res: Response) => {
         const {page} = req.query || 1
-        const blogs = await patreonBlogs.find({}, { projection : { _id:0 }}).sort({createdAt: -1}).skip(10 * page - 10).limit(10).toArray()
+    const {pageSize} = req.query.pageSize ? req.query.pageSize : 10
+    const blogs = await patreonBlogs.find({}, { projection : { _id:0 }}).sort({createdAt: -1}).skip(pageSize * page - pageSize).limit(pageSize).toArray()
         const totalCount = await patreonBlogs.count({})
-        const pagesCount = Math.ceil(totalCount / 10)
-        return res.status(200).send({pagesCount,page: req.query.page ? req.query.page : 1,pageSize:10,totalCount,items: blogs})
+        const pagesCount = Math.ceil(totalCount / pageSize)
+        return res.status(200).send({pagesCount,page: req.query.page ? req.query.page : 1,pageSize:req.query.pageSize ? req.query.pageSize : 10,totalCount,items: blogs})
 })
 
 blogsRouter.get('/:id', async(req: Request, res: Response) => {
