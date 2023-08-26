@@ -74,10 +74,12 @@ postsRouter.get('/', async (req: Request, res: Response) => {
             sortDirection = 'asc'
         }
     }
+    const sortBy = req.query.sortBy || 'createdAt'
+    console.log(sortBy)
         const posts = await patreonPosts
             .find({}, { projection : { _id:0 }})
             //@ts-ignore
-            .sort({createdAt: sortDirection === 'desc' ? -1 : 1})
+            .sort({sortBy: sortDirection === 'desc' ? -1 : 1})
 
             .skip(pageSize *pageNumber - pageSize)
             .limit(pageSize)
