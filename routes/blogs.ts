@@ -63,7 +63,8 @@ blogsRouter.post('/',checkAuth, blogsCreateValidation, async(req: Request, res: 
         isMembership: false,
         createdAt: new Date().toISOString()
     }
-    await patreonBlogs.insertOne(newBlog)
+    await patreonBlogs.insertOne({...newBlog})
+
     res.status(201).send(newBlog)
 })
 

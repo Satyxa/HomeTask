@@ -88,7 +88,7 @@ postsRouter.post('/', checkAuth, postCreateValidation, async (req: Request, res:
         blogName: 'string',
         createdAt: new Date().toISOString()
     }
-    await patreonPosts.insertOne(newPost)
+    await patreonPosts.insertOne({...newPost})
     res.status(201).send(newPost)
 })
 
