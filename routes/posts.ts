@@ -3,7 +3,7 @@ import {client} from "../db/db";
 import {ValidationErrorType} from './videos'
 import * as uuid from 'uuid'
 import {patreonBlogs} from "./blogs";
-const patreonPosts = client.db('patreon').collection<postT>('posts')
+export const patreonPosts = client.db('patreon').collection<postT>('posts')
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
 
@@ -34,7 +34,7 @@ export type postT = {
     createdAt: string
 }
 // @ts-ignore
-const postCreateValidation = async (req: Request, res: Response, next: NextFunction) => {
+export const postCreateValidation = async (req: Request, res: Response, next: NextFunction) => {
     const {title, shortDescription, content, blogId} = req.body
     const errors: ValidationErrorType[] = []
     if (!title || !title.trim() || title.length > 30) {

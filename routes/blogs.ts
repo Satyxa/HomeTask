@@ -1,7 +1,7 @@
 import {Router, Response, Request, NextFunction} from "express";
 import {client} from "../db/db";
 import {ValidationErrorType} from './videos'
-import {checkAuth} from "./posts";
+import {checkAuth, patreonPosts, postCreateValidation, postT} from "./posts";
 import * as uuid from 'uuid'
 export type blogsT = {
     id: string
@@ -36,6 +36,36 @@ const blogsCreateValidation = (req: Request, res: Response, next: NextFunction) 
 }
 
 export const blogsRouter = Router({})
+
+blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
+    const {id} = req.params
+    const blogs = await patreonBlogs.find({id}, { projection : { _id:0 }}).toArray()
+    if(!blogs || blogs.length === 0){
+        return res.sendStatus(404)
+    }
+    const allPostsForBlog = await patreonPosts.find({blogId: id}, {projection: {_id: 0}}).toArray()
+    res.status(200).send(allPostsForBlog)
+})
+
+blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request, res: Response) => {
+    const {id} = req.params
+    const blogs = await patreonBlogs.find({id}, { projection : { _id:0 }}).toArray()
+    if(!blogs || blogs.length === 0){
+        return res.sendStatus(404)
+    }
+    const {title, shortDescription, content, blogId} = req.body
+    const newPost: postT = {
+        id: uuid.v4(),
+        title,
+        shortDescription,
+        content,
+        blogId: id,
+        blogName: 'string',
+        createdAt: new Date().toISOString()
+    }
+    await patreonPosts.insertOne({...newPost})
+    res.status(201).send(newPost)
+})
 
 blogsRouter.get('/', async(req: Request, res: Response) => {
 
