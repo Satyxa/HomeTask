@@ -78,6 +78,7 @@ postsRouter.get('/', async (req: Request, res: Response) => {
     const posts = await patreonPosts
         .find({}, { projection : { _id:0 }})
         .skip(pageSize *pageNumber - pageSize)
+        .sort({createdAt: sortDirection === 'desc' ? -1 : 1})
         .limit(pageSize)
         .toArray()
     function byField(fieldName){
