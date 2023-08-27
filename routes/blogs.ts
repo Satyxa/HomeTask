@@ -3,6 +3,7 @@ import {client} from "../db/db";
 import {ValidationErrorType} from './videos'
 import {checkAuth, patreonPosts, postCreateValidation, postT} from "./posts";
 import * as uuid from 'uuid'
+import {Filter} from "mongodb";
 export type blogsT = {
     id: string
     name: string
@@ -98,14 +99,16 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
         }
     }
     const sortBy = req.query.sortBy || 'createdAt'
+    const searchNameTerm = req.query.searchNameTerm as string
+    const filter: Filter<blogsT> = {name: {$regex: searchNameTerm ?? '', $options: 'i'}}
     const blogs = await patreonBlogs
-        .find({}, { projection : { _id:0 }})
+        .find(filter, { projection : { _id:0 }})
         .sort({[sortBy]: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
         .toArray()
 
-        const totalCount = await patreonBlogs.countDocuments({})
+        const totalCount = await patreonBlogs.countDocuments(filter)
         const pagesCount = Math.ceil(totalCount / pageSize)
         return res
             .status(200)
