@@ -93,8 +93,8 @@ postsRouter.get('/', async (req: Request, res: Response) => {
         const totalCount = await patreonPosts.countDocuments({})
         const pagesCount = Math.ceil(totalCount / pageSize)
         return res.status(200).send({pagesCount,
-            page: req.query.pageNumber ? req.query.pageNumber : 1,
-            pageSize:req.query.pageSize ? req.query.pageSize : 10,
+            page: pageNumber,
+            pageSize,
             totalCount,
             items: posts})
 })

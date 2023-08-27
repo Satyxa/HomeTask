@@ -43,7 +43,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
     if(!findBlog || findBlog.length === 0){
         return res.sendStatus(404)
     }
-    const pageNumber:number = req.query.pageNumber ? +req.query.pageNumber : 1
+    const pageNumber = req.query.pageNumber ? +req.query.pageNumber : 1
     const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
     const sortBy = req.query.sortBy || 'createdAt'
     let sortDirection = "desc"
@@ -63,7 +63,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
     return res
         .status(200)
         .send({pagesCount,
-            page: +pageNumber,
+            page: pageNumber,
             pageSize,
             totalCount,
             items: posts})
