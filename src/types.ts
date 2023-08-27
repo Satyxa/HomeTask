@@ -1,0 +1,68 @@
+export type userT = {
+    id: string
+    email: string
+    username: string
+    passwordHash: string
+    passwordSalt: string
+    createdAt: string
+}
+
+export type userLoginT = {
+    password: string
+    loginOrEmail: string
+}
+
+export type userViewT = {
+    id: string
+    email: string
+    username: string
+    createdAt: string
+}
+
+
+
+export type postT = {
+    id: string
+    title: string
+    shortDescription: string
+    content: string
+    blogId: string
+    blogName: string
+    createdAt: string
+}
+
+export type blogsT = {
+    id: string
+    name: string
+    description: string
+    websiteUrl: string
+    isMembership: boolean
+    createdAt: string
+}
+
+export type videoT = {
+    id: number
+    title: string
+    author: string
+    canBeDownloaded: boolean
+    minAgeRestriction: number | null
+    createdAt: string
+    publicationDate: string
+    availableResolutions: Array<'P144' | 'P240' | 'P360' | 'P480' | 'P720' | 'P1080' | 'P1440' | 'P2160'>
+}
+
+export type updatedVideoType = {
+    id: number,
+    title: string,
+    author: string,
+    canBeDownloaded: boolean,
+    minAgeRestriction: number | null,
+    createdAt: string,
+    publicationDate: string,
+    availableResolutions: Array<string>
+}
+
+export type ValidationErrorType = {
+    message: string
+    field: string
+}
