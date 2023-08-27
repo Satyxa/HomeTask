@@ -111,13 +111,14 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
 
 postsRouter.post('/', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
     const {title, shortDescription, content, blogId} = req.body
+    const blog = await patreonBlogs.findOne({id: blogId})
     const newPost: postT = {
         id: uuid.v4(),
         title,
         shortDescription,
         content,
         blogId,
-        blogName: 'string',
+        blogName: blog!.name,
         createdAt: new Date().toISOString()
     }
     await patreonPosts.insertOne({...newPost})
