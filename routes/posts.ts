@@ -128,7 +128,7 @@ postsRouter.post('/', checkAuth, postCreateValidation, async (req: Request, res:
 postsRouter.put('/:id', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
     const {id} = req.params
     const {title, shortDescription, content, blogId} = req.body
-
+    const blog = await patreonBlogs.findOne({id: blogId})
     const result = await patreonPosts.updateOne({id},
             {
                 $set: {
@@ -136,7 +136,7 @@ postsRouter.put('/:id', checkAuth, postCreateValidation, async (req: Request, re
                     shortDescription,
                     content,
                     blogId,
-                    blogName: 'string'
+                    blogName: blog!.name,
                 }
             })
 
