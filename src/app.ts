@@ -29,7 +29,7 @@ app.delete('/testing/all-data', async(req: Request, res: Response) => {
   res.sendStatus(204)
 })
 
-
+console.log('privet')
 const startApp = async () => {
   await runDB()
   return app.listen(port, () => {
