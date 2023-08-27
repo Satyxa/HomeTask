@@ -63,7 +63,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
     return res
         .status(200)
         .send({pagesCount,
-            page: pageNumber,
+            page: +pageNumber,
             pageSize,
             totalCount,
             items: posts})
@@ -115,7 +115,7 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
             .send(
                 {
                     pagesCount,
-                    page: pageNumber,
+                    page: +pageNumber,
                     pageSize,
                     totalCount,
                     items: blogs
