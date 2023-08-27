@@ -74,16 +74,21 @@ postsRouter.get('/', async (req: Request, res: Response) => {
             sortDirection = 'asc'
         }
     }
-    const sortBy = req.query.sortBy || 'createdAt'
-    console.log(sortBy)
-        const posts = await patreonPosts
-            .find({}, { projection : { _id:0 }})
-            //@ts-ignore
-            .sort({sortBy: sortDirection === 'desc' ? -1 : 1})
+    const sortBy = req.query.sortBy ? req.query.sortBy : 'createdAt'
+    const posts = await patreonPosts
+        .find({}, { projection : { _id:0 }})
+        .skip(pageSize *pageNumber - pageSize)
+        .limit(pageSize)
+        .toArray()
+    function byField(fieldName){
+        return (a, b) => a[fieldName] > b[fieldName] ? 1 : -1;
+    }
+    if(sortDirection === 'asc'){
+        posts.sort(byField(sortBy))
 
-            .skip(pageSize *pageNumber - pageSize)
-            .limit(pageSize)
-            .toArray()
+    } else {
+        posts.sort(byField(sortBy)).reverse()
+    }
         const totalCount = await patreonPosts.countDocuments({})
         const pagesCount = Math.ceil(totalCount / pageSize)
         return res.status(200).send({pagesCount,

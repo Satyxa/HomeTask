@@ -53,11 +53,18 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
     }
     const posts = await patreonPosts
         .find({blogId: id}, { projection : { _id:0 }})
-        .sort({sortBy: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
         .toArray()
+    function byField(fieldName){
+        return (a, b) => a[fieldName] > b[fieldName] ? 1 : -1;
+    }
+    if(sortDirection === 'asc'){
+        posts.sort(byField(sortBy))
 
+    } else {
+        posts.sort(byField(sortBy)).reverse()
+    }
     const totalCount = await patreonPosts.countDocuments({blogId: id})
     const pagesCount = Math.ceil(totalCount / pageSize)
     return res
@@ -101,10 +108,20 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
     const sortBy = req.query.sortBy || 'createdAt'
     const blogs = await patreonBlogs
         .find({}, { projection : { _id:0 }})
-        .sort({sortBy: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
         .toArray()
+
+    function byField(fieldName){
+        return (a, b) => a[fieldName] > b[fieldName] ? 1 : -1;
+    }
+    if(sortDirection === 'asc'){
+        blogs.sort(byField(sortBy))
+        console.log(blogs.sort(byField(sortBy)))
+    } else {
+        blogs.sort(byField(sortBy)).reverse()
+        console.log(blogs.sort(byField(sortBy)).reverse())
+    }
         const totalCount = await patreonBlogs.countDocuments({})
         const pagesCount = Math.ceil(totalCount / pageSize)
         return res
