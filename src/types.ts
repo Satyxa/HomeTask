@@ -7,6 +7,11 @@ export type userT = {
     createdAt: string
 }
 
+export type errorField = {
+    field: string
+    message: string
+}
+
 export type userLoginT = {
     password: string
     loginOrEmail: string

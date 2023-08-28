@@ -1,7 +1,7 @@
 import {NextFunction, Request, Response} from "express";
-import {ValidationErrorType} from "./types";
+import {errorField, ValidationErrorType} from "./types";
 import {patreonBlogs} from "./db/db";
-import {body, validationResult} from "express-validator";
+import {body, Result, ValidationError, validationResult} from "express-validator";
 
 export const blogsCreateValidation = (req: Request, res: Response, next: NextFunction) => {
     const {name, description, websiteUrl} = req.body
@@ -112,6 +112,21 @@ export const updateVideoValidation = (canBeDownloaded: boolean, minAgeRestrictio
 
 export const loginValidation = [
     body('password', 'incorrect password').isString().isLength({min: 6, max: 20}),
-    body('email', 'incorrect email').isString().isLength({min: 6, max: 20}).isEmail(),
-    body('login', 'incorrect login').isString().isLength({min: 3, max: 10})
+    body('email', 'incorrect email').optional().isString().isLength({min: 6, max: 20}).isEmail(),
+    body('login', 'incorrect login').optional().isString().isLength({min: 3, max: 10})
 ]
+
+export const checkValidation = (req: Request, res: Response, resultValidation) => {
+    if(!resultValidation.isEmpty()){
+        const errors = resultValidation.array()
+        const errorsFields: errorField[] = []
+        if(!errors.length){
+            errors.map((err: any) => {
+                errorsFields.push({message: err.msg, field: err.path})
+            })
+        }
+        console.log('valts' + errorsFields)
+        return errorsFields || []
+    }
+
+}

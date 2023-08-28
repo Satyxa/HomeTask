@@ -1,10 +1,11 @@
 import {Request, Response, Router} from "express";
 import {patreonUsers} from "../db/db";
-import {userT} from "../types";
+import {errorField, userT} from "../types";
 import {createUser} from "../autentification";
 import {Filter} from "mongodb";
 import {paginationSort} from "../PaginationAndSort";
-import {checkAuth} from "../validation";
+import {checkAuth, checkValidation, loginValidation} from "../validation";
+import {Result, ValidationError, validationResult} from "express-validator";
 
 export const usersRouter = Router({});
 
@@ -35,7 +36,17 @@ usersRouter.get('/', checkAuth,async (req: Request, res: Response) => {
     items: users})
 })
 
-usersRouter.post('/', checkAuth, async(req: Request, res: Response) => {
+usersRouter.post('/', loginValidation, async(req: Request, res: Response) => {
+
+  const resultValidation: Result<ValidationError> = validationResult(req)
+  if(!resultValidation.isEmpty()){
+    const errors = resultValidation.array()
+    const errorsFields: errorField[] = []
+
+      errors.map((err: any) => {
+        errorsFields.push({message: err.msg, field: err.path})
+      return res.status(400).send({errorMessages: errorsFields})
+    })}
   const {email, login, password} = req.body
   const newUser: userT = await createUser(login, email, password)
   await patreonUsers.insertOne({...newUser})
