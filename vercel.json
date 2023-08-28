@@ -2,9 +2,9 @@
   "version": 2,
   "name": "patreon",
   "builds": [
-    { "src": "./src/app.ts", "use": "@vercel/node" }
+    { "src": "/app.ts", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "./src/app.ts" }
+    { "src": "/(.*)", "dest": "/app.ts" }
   ]
 }
