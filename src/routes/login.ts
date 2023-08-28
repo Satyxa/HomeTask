@@ -24,18 +24,12 @@ loginRouter.post('/login',loginValidation, async (req: Request, res: Response) =
     const filter = {$or: [{email: loginOrEmail}, {login: loginOrEmail}]}
     const findUser = await patreonUsers.find(filter).toArray()
 
-    console.log('before findUser')
+
     if(!findUser || findUser.length === 0) return res.sendStatus(404)
     const isValidPassword = await bcrypt.compare(password, findUser[0].passwordHash)
-    console.log(isValidPassword)
-    console.log('after findUser')
-    if(isValidPassword) {
-        console.log('inside isValidPassword')
-        return res.status(201).send(findUser)
 
-    }
+    if(isValidPassword) return res.sendStatus(204)
     else {
-        console.log('after isValidPassword in else')
         return res.sendStatus(401).send({
             errorsMessages: [
                 {
