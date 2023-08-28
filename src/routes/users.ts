@@ -4,11 +4,12 @@ import {userT} from "../types";
 import {createUser} from "../autentification";
 import {Filter} from "mongodb";
 import {paginationSort} from "../PaginationAndSort";
+import {checkAuth} from "../validation";
 
 export const usersRouter = Router({});
 
 
-usersRouter.get('/', async (req: Request, res: Response) => {
+usersRouter.get('/', checkAuth,async (req: Request, res: Response) => {
   const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm} = await paginationSort(req)
   const filter: Filter<userT> = {$or: [{login: {$regex: searchLoginTerm ?? '', $options: 'i'}}, {email: {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
   const totalCount = await patreonUsers.countDocuments(filter)
@@ -34,7 +35,7 @@ usersRouter.get('/', async (req: Request, res: Response) => {
     items: users})
 })
 
-usersRouter.post('/', async(req: Request, res: Response) => {
+usersRouter.post('/', checkAuth, async(req: Request, res: Response) => {
   const {email, login, password} = req.body
   const newUser: userT = await createUser(login, email, password)
   await patreonUsers.insertOne({...newUser})
@@ -47,7 +48,7 @@ usersRouter.post('/', async(req: Request, res: Response) => {
   return res.status(201).send(viewUser)
 })
 
-usersRouter.delete('/:id', async(req: Request, res: Response) => {
+usersRouter.delete('/:id',checkAuth, async(req: Request, res: Response) => {
   const id = req.query.id
   const result = await patreonUsers.deleteOne({id})
   if(result.deletedCount === 1){ return res.sendStatus(204)}
