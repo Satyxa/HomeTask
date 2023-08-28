@@ -30,7 +30,7 @@ app.delete('/testing/all-data', async(req: Request, res: Response) => {
 })
 const startApp = async () => {
   await runDB()
-  return app.listen(port, () => {
+  app.listen(port, () => {
     console.log( 'server 5200 ok')
   })
 }
