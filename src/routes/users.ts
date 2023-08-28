@@ -45,7 +45,6 @@ usersRouter.post('/', usersValidation, checkAuth, async(req: Request, res: Respo
 
     errors.map((err: any) => {
       errorsFields.push({message: err.msg, field: err.path})
-
     })
     console.log('before return error')
     return res.status(400).send({errorsMessages: errorsFields})
