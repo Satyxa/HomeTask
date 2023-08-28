@@ -9,11 +9,11 @@ export const usersRouter = Router({});
 
 
 usersRouter.get('/', async (req: Request, res: Response) => {
-  const {pageNumber, pageSize, sortBy, searchNameTerm} = await paginationSort(req)
-  const filter: Filter<userT> = {username: {$regex: searchNameTerm ?? '', $options: 'i'}}
+  const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm} = await paginationSort(req)
+  const filter: Filter<userT> = {$or: [{username: {$regex: searchLoginTerm ?? '', $options: 'i'}}, {email: {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
   const totalCount = await patreonUsers.countDocuments(filter)
   const pagesCount = Math.ceil(totalCount / pageSize)
-  let sortDirection = "desc"
+  let sortDirection: "desc" | "asc" = "desc"
   if(req.query.sortDirection){
     if(req.query.sortDirection === 'asc'){
       sortDirection = 'asc'
@@ -21,9 +21,8 @@ usersRouter.get('/', async (req: Request, res: Response) => {
   }
 
   const users = await patreonUsers
-      .find(filter || {email: {$regex: searchNameTerm ?? '', $options: 'i'}}, { projection : { _id:0, passwordHash: 0, passwordSalt: 0 }})
-      //@ts-ignore
-      .sort({[sortBy]: sortDirection === 'desc' ? -1 : 1})
+      .find(filter, { projection : { _id:0, passwordHash: 0, passwordSalt: 0 }})
+      .sort({[sortBy === 'login' ? 'username': sortBy]: sortDirection})
       .skip(pageSize * pageNumber - pageSize)
       .limit(pageSize)
       .toArray()
