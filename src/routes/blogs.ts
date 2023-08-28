@@ -53,7 +53,7 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
             }
         }
     const blogs = await patreonBlogs
-        .find({}, { projection : { _id:0 }})
+        .find(filter, { projection : { _id:0 }})
         //@ts-ignore
         .sort({[sortBy]: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)

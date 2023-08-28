@@ -21,7 +21,7 @@ usersRouter.get('/', async (req: Request, res: Response) => {
   }
 
   const users = await patreonUsers
-      .find(filter, { projection : { _id:0, passwordHash: 0, passwordSalt: 0 }})
+      .find(filter || {email: {$regex: searchNameTerm ?? '', $options: 'i'}}, { projection : { _id:0, passwordHash: 0, passwordSalt: 0 }})
       //@ts-ignore
       .sort({[sortBy]: sortDirection === 'desc' ? -1 : 1})
       .skip(pageSize * pageNumber - pageSize)
