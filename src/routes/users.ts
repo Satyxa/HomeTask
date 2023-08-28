@@ -4,7 +4,7 @@ import {errorField, userT} from "../types";
 import {createUser} from "../autentification";
 import {Filter} from "mongodb";
 import {paginationSort} from "../PaginationAndSort";
-import {checkAuth, checkValidation, loginValidation} from "../validation";
+import {checkAuth, checkValidation, loginValidation, usersValidation} from "../validation";
 import {Result, ValidationError, validationResult} from "express-validator";
 
 export const usersRouter = Router({});
@@ -36,7 +36,7 @@ usersRouter.get('/', checkAuth,async (req: Request, res: Response) => {
     items: users})
 })
 
-usersRouter.post('/', loginValidation, async(req: Request, res: Response) => {
+usersRouter.post('/', usersValidation, checkAuth, async(req: Request, res: Response) => {
 
   const resultValidation: Result<ValidationError> = validationResult(req)
   if(!resultValidation.isEmpty()){
