@@ -49,7 +49,7 @@ usersRouter.post('/', checkAuth, async(req: Request, res: Response) => {
 })
 
 usersRouter.delete('/:id',checkAuth, async(req: Request, res: Response) => {
-  const id = req.query.id
+  const id = req.params.id
   const result = await patreonUsers.deleteOne({id})
   if(result.deletedCount === 1){ return res.sendStatus(204)}
   else {return res.sendStatus(404)}

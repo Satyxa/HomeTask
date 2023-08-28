@@ -1,6 +1,7 @@
 import {NextFunction, Request, Response} from "express";
 import {ValidationErrorType} from "./types";
 import {patreonBlogs} from "./db/db";
+import {body, validationResult} from "express-validator";
 
 export const blogsCreateValidation = (req: Request, res: Response, next: NextFunction) => {
     const {name, description, websiteUrl} = req.body
@@ -108,3 +109,9 @@ export const updateVideoValidation = (canBeDownloaded: boolean, minAgeRestrictio
     }
     return errors
 }
+
+export const loginValidation = [
+    body('password', 'incorrect password').isString().isLength({min: 6, max: 20}),
+    body('email', 'incorrect email').isString().isLength({min: 6, max: 20}).isEmail(),
+    body('login', 'incorrect login').isString().isLength({min: 3, max: 10})
+]
