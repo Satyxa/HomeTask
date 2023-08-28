@@ -1,9 +1,10 @@
 import {Router, Response, Request} from "express";
-import {patreonBlogs, patreonPosts} from "../db/db";
+import {patreonBlogs, patreonPosts, patreonUsers} from "../db/db";
 import {postT, blogsT} from '../types'
 import * as uuid from 'uuid'
 import {Filter} from "mongodb";
 import {blogsCreateValidation, postCreateValidation, checkAuth} from "../validation";
+import {paginationSort} from "../PaginationAndSort";
 
 
 export const blogsRouter = Router({})
@@ -40,10 +41,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
 })
 
 blogsRouter.get('/', async(req: Request, res: Response) => {
-    const pageNumber:number = req.query.pageNumber ? +req.query.pageNumber : 1
-    const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
-    const sortBy = req.query.sortBy as string ? req.query.sortBy : 'createdAt'
-    const searchNameTerm = req.query.searchNameTerm as string
+    const {pageNumber, pageSize, sortBy, searchNameTerm} = await paginationSort(req)
     const filter: Filter<blogsT> = {name: {$regex: searchNameTerm ?? '', $options: 'i'}}
     const totalCount = await patreonBlogs.countDocuments(filter)
     const pagesCount = Math.ceil(totalCount / pageSize)
@@ -55,7 +53,7 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
             }
         }
     const blogs = await patreonBlogs
-        .find(filter, { projection : { _id:0 }})
+        .find({}, { projection : { _id:0 }})
         //@ts-ignore
         .sort({[sortBy]: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)

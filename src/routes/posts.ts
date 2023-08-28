@@ -3,14 +3,13 @@ import {patreonPosts, patreonBlogs} from "../db/db";
 import {postT} from '../types'
 import * as uuid from 'uuid'
 import {checkAuth, postCreateValidation} from "../validation";
+import {paginationSort} from "../PaginationAndSort";
 
 
 export const postsRouter = Router({})
 
 postsRouter.get('/', async (req: Request, res: Response) => {
-    const pageNumber:number = req.query.pageNumber ? +req.query.pageNumber : 1
-    const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
-    const sortBy = req.query.sortBy as string ? req.query.sortBy : 'createdAt'
+    const {pageNumber, pageSize, sortBy} = await paginationSort(req)
     const totalCount = await patreonPosts.countDocuments({})
     const pagesCount = Math.ceil(totalCount / pageSize)
 

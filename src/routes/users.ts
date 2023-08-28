@@ -2,15 +2,37 @@ import {Request, Response, Router} from "express";
 import {patreonUsers} from "../db/db";
 import {userT} from "../types";
 import {createUser} from "../autentification";
+import {Filter} from "mongodb";
+import {paginationSort} from "../PaginationAndSort";
 
 export const usersRouter = Router({});
 
 
 usersRouter.get('/', async (req: Request, res: Response) => {
+  const {pageNumber, pageSize, sortBy, searchNameTerm} = await paginationSort(req)
+  const filter: Filter<userT> = {username: {$regex: searchNameTerm ?? '', $options: 'i'}}
+  const totalCount = await patreonUsers.countDocuments(filter)
+  const pagesCount = Math.ceil(totalCount / pageSize)
+  let sortDirection = "desc"
+  if(req.query.sortDirection){
+    if(req.query.sortDirection === 'asc'){
+      sortDirection = 'asc'
+    }
+  }
+
   const users = await patreonUsers
-      .find({}, {projection: {_id: 0,passwordHash: 0, passwordSalt: 0}})
+      .find(filter, { projection : { _id:0, passwordHash: 0, passwordSalt: 0 }})
+      //@ts-ignore
+      .sort({[sortBy]: sortDirection === 'desc' ? -1 : 1})
+      .skip(pageSize * pageNumber - pageSize)
+      .limit(pageSize)
       .toArray()
-  res.status(200).send(users)
+  return res.status(200).send({
+    pagesCount,
+    page: pageNumber,
+    pageSize,
+    totalCount,
+    items: users})
 })
 
 usersRouter.post('/', async(req: Request, res: Response) => {

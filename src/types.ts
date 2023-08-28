@@ -19,6 +19,15 @@ export type userViewT = {
     createdAt: string
 }
 
+export type pagSortT = {
+    pageNumber: number,
+    pageSize: number,
+    sortBy: string,
+    searchNameTerm: string,
+    totalCount: number,
+    pagesCount: number
+}
+
 
 
 export type postT = {
