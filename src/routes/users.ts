@@ -48,7 +48,7 @@ usersRouter.post('/', usersValidation, checkAuth, async(req: Request, res: Respo
 
     })
     console.log('before return error')
-    return res.status(400).send({errorMessages: errorsFields})
+    return res.status(400).send({errorsMessages: errorsFields})
 
   }
   console.log('after map')
