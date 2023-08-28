@@ -10,7 +10,7 @@ export const usersRouter = Router({});
 
 usersRouter.get('/', async (req: Request, res: Response) => {
   const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm} = await paginationSort(req)
-  const filter: Filter<userT> = {$or: [{username: {$regex: searchLoginTerm ?? '', $options: 'i'}}, {email: {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
+  const filter: Filter<userT> = {$or: [{login: {$regex: searchLoginTerm ?? '', $options: 'i'}}, {email: {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
   const totalCount = await patreonUsers.countDocuments(filter)
   const pagesCount = Math.ceil(totalCount / pageSize)
   let sortDirection: "desc" | "asc" = "desc"
@@ -22,7 +22,7 @@ usersRouter.get('/', async (req: Request, res: Response) => {
 
   const users = await patreonUsers
       .find(filter, { projection : { _id:0, passwordHash: 0, passwordSalt: 0 }})
-      .sort({[sortBy === 'login' ? 'username': sortBy]: sortDirection})
+      .sort({[sortBy]: sortDirection})
       .skip(pageSize * pageNumber - pageSize)
       .limit(pageSize)
       .toArray()
