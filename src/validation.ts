@@ -126,14 +126,14 @@ export const usersValidation = [
 export const checkValidation = (req: Request, res: Response, resultValidation) => {
     if(!resultValidation.isEmpty()){
         const errors = resultValidation.array()
-        console.log(errors)
+
         const errorsFields: errorField[] = []
         if(!errors.length){
             errors.map((err: any) => {
                 errorsFields.push({message: err.msg, field: err.path})
             })
         }
-        console.log('valts' + errorsFields)
+
         return errorsFields || []
     }
 

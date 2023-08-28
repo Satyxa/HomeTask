@@ -11,11 +11,17 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
     const findUser = await patreonUsers.find(filter).toArray()
 
 
-    if(!findUser || findUser.length === 0) return res.sendStatus(401)
+    if(!findUser || findUser.length === 0) {
+        console.log('AAAAAAA')
+        console.log('BBBBB')
+        console.log('in undefoned user')
+        return res.sendStatus(401)
+    }
     const isValidPassword = await bcrypt.compare(password, findUser[0].passwordHash)
 
     if(isValidPassword) return res.sendStatus(204)
     else {
+        console.log('in else')
         return res.sendStatus(401).send({
             errorsMessages: [
                 {
