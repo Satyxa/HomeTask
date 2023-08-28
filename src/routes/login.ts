@@ -6,20 +6,20 @@ import {Result, ValidationError, validationResult} from "express-validator";
 import {errorField} from "../types";
 export const loginRouter = Router({});
 
-loginRouter.post('/login',loginValidation, async (req: Request, res: Response) => {
+loginRouter.post('/login', async (req: Request, res: Response) => {
     const {loginOrEmail, password} = req.body
     if(!loginOrEmail || !password )return res.sendStatus(400)
 
-    const resultValidation: Result<ValidationError> = await validationResult(req)
-    if(!resultValidation.isEmpty()){
-        const errors = resultValidation.array()
-        const errorsFields: errorField[] = []
-        if(errors.length > 0){
-            errors.map((err: any) => {
-                errorsFields.push({message: err.msg, field: err.path})
-            })
-            return res.status(400).send({errorMessages: errorsFields})
-        }}
+    // const resultValidation: Result<ValidationError> = await validationResult(req)
+    // if(!resultValidation.isEmpty()){
+    //     const errors = resultValidation.array()
+    //     const errorsFields: errorField[] = []
+    //     if(errors.length > 0){
+    //         errors.map((err: any) => {
+    //             errorsFields.push({message: err.msg, field: err.path})
+    //         })
+    //         return res.status(400).send({errorMessages: errorsFields})
+    //     }}
 
     const filter = {$or: [{email: loginOrEmail}, {login: loginOrEmail}]}
     const findUser = await patreonUsers.find(filter).toArray()
