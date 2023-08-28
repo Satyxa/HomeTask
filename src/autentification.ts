@@ -13,7 +13,7 @@ export const createUser = async (login: string, email: string, password: string)
 
     return {
         id: uuid.v4(),
-        username: login,
+        login,
         email,
         passwordHash,
         passwordSalt,

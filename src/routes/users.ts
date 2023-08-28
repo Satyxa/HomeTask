@@ -40,7 +40,7 @@ usersRouter.post('/', async(req: Request, res: Response) => {
   await patreonUsers.insertOne({...newUser})
   const viewUser = {
     id: newUser.id,
-    login: newUser.username,
+    login: newUser.login,
     email: newUser.email,
     createdAt: newUser.createdAt
   }

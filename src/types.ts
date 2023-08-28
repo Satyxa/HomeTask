@@ -1,7 +1,7 @@
 export type userT = {
     id: string
     email: string
-    username: string
+    login: string
     passwordHash: string
     passwordSalt: string
     createdAt: string
