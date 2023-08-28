@@ -3,7 +3,7 @@ import {pagSortT, userT} from "./types";
 import {patreonUsers} from "./db/db";
 
 
-export const paginationSort = async (req) => {
+export const paginationSort = async (req: any) => {
     return {
         pageNumber: req.query.pageNumber ? +req.query.pageNumber : 1,
         pageSize: req.query.pageSize ? +req.query.pageSize : 10,
