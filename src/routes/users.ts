@@ -42,11 +42,15 @@ usersRouter.post('/', usersValidation, checkAuth, async(req: Request, res: Respo
   if(!resultValidation.isEmpty()){
     const errors = resultValidation.array()
     const errorsFields: errorField[] = []
-
+    console.log(errors)
     errors.map((err: any) => {
       errorsFields.push({message: err.msg, field: err.path})
+      console.log(errorsFields)
     })
-    console.log('before return error')
+
+    if(errorsFields.length > 3){
+      errorsFields.splice(3)
+    }
     return res.status(400).send({errorsMessages: errorsFields})
 
   }
