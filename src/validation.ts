@@ -116,6 +116,12 @@ export const loginValidation = [
     body('login', 'incorrect login').optional().isString().isLength({min: 3, max: 10})
 ]
 
+export const usersValidation = [
+    body('password', 'incorrect password').isString().isLength({min: 6, max: 20}),
+    body('email', 'incorrect email').isString().isLength({min: 6, max: 20}).isEmail(),
+    body('login', 'incorrect login').isString().isLength({min: 3, max: 10})
+]
+
 export const checkValidation = (req: Request, res: Response, resultValidation) => {
     if(!resultValidation.isEmpty()){
         const errors = resultValidation.array()
