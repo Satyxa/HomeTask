@@ -117,9 +117,10 @@ export const loginValidation = [
 ]
 
 export const usersValidation = [
+    body('login', 'incorrect login').isString().isLength({min: 3, max: 10}),
     body('password', 'incorrect password').isString().isLength({min: 6, max: 20}),
     body('email', 'incorrect email').isString().isLength({min: 6, max: 20}).isEmail(),
-    body('login', 'incorrect login').isString().isLength({min: 3, max: 10})
+
 ]
 
 export const checkValidation = (req: Request, res: Response, resultValidation) => {
