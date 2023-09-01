@@ -2,7 +2,7 @@ import express, { Request, Response} from 'express'
 import { videosRouter} from "./routes/videos";
 import {blogsRouter} from "./routes/blogs";
 import {postsRouter} from "./routes/posts";
-import {runDB} from "./db/db";
+import {patreonComments, runDB} from "./db/db";
 import {patreonPosts, patreonBlogs, patreonVideos, patreonUsers} from './db/db'
 import {usersRouter} from "./routes/users";
 import {loginRouter} from "./routes/login";
@@ -28,6 +28,7 @@ app.delete('/testing/all-data', async(req: Request, res: Response) => {
   await patreonPosts.deleteMany({})
   await patreonVideos.deleteMany({})
   await patreonUsers.deleteMany({})
+  await patreonComments.deleteMany({})
   res.sendStatus(204)
 })
 const startApp = async () => {
