@@ -2,8 +2,7 @@ import express, { Request, Response} from 'express'
 import { videosRouter} from "./routes/videos";
 import {blogsRouter} from "./routes/blogs";
 import {postsRouter} from "./routes/posts";
-import {patreonComments, runDB} from "./db/db";
-import {patreonPosts, patreonBlogs, patreonVideos, patreonUsers} from './db/db'
+import {patreonPosts, patreonBlogs, patreonVideos, patreonUsers, patreonComments, runDB} from './db/db'
 import {usersRouter} from "./routes/users";
 import {loginRouter} from "./routes/login";
 import {commentsRouter} from "./routes/comments";
