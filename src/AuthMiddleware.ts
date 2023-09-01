@@ -5,7 +5,6 @@ export const AuthMiddleware = async (req: Request, res: Response, next:NextFunct
     if(!req.headers.authorization) return res.sendStatus(401)
 
     const token = req.headers.authorization.split(' ')[1]
-    console.log(token)
     req.userId = getUserIdByToken(token)
     next()
 }
