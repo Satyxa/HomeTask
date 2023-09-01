@@ -5,6 +5,7 @@ import * as uuid from 'uuid'
 import {Filter} from "mongodb";
 import {blogsCreateValidation, postCreateValidation, checkAuth} from "../validation";
 import {paginationSort} from "../PaginationAndSort";
+import {AuthMiddleware} from "../AuthMiddleware";
 
 
 export const blogsRouter = Router({})
@@ -74,7 +75,7 @@ blogsRouter.get('/:id', async(req: Request, res: Response) => {
     else {res.status(200).send(foundBlog[0])}
 })
 
-blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request, res: Response) => {
+blogsRouter.post('/:id/posts',AuthMiddleware,postCreateValidation, async(req: Request, res: Response) => {
     const {id} = req.params
     const blogs = await patreonBlogs
         .find({id}, { projection : { _id:0 }}).toArray()
@@ -87,13 +88,14 @@ blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request
         content,
         blogId: id,
         blogName: 'string',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        comments: []
     }
     await patreonPosts.insertOne({...newPost})
     res.status(201).send(newPost)
 })
 
-blogsRouter.post('/',checkAuth, blogsCreateValidation, async(req: Request, res: Response) => {
+blogsRouter.post('/',AuthMiddleware, blogsCreateValidation, async(req: Request, res: Response) => {
     const {name, description, websiteUrl} = req.body
         const newBlog: blogsT = {
             id: uuid.v4(),
@@ -107,7 +109,7 @@ blogsRouter.post('/',checkAuth, blogsCreateValidation, async(req: Request, res: 
     res.status(201).send(newBlog)
 })
 
-blogsRouter.put('/:id',checkAuth,  blogsCreateValidation, async(req:Request, res: Response)=>{
+blogsRouter.put('/:id',AuthMiddleware,  blogsCreateValidation, async(req:Request, res: Response)=>{
     const {id} = req.params
     const {name, description, websiteUrl} = req.body
         const result = await patreonBlogs.updateOne({id}, {
@@ -117,7 +119,7 @@ blogsRouter.put('/:id',checkAuth,  blogsCreateValidation, async(req:Request, res
     else {return res.sendStatus(404)}
 })
 
-blogsRouter.delete('/:id',checkAuth, async (req: Request, res: Response) => {
+blogsRouter.delete('/:id',AuthMiddleware, async (req: Request, res: Response) => {
     const {id} = req.params
     const result = await patreonBlogs.deleteOne({id})
 
