@@ -4,13 +4,14 @@ import {errorField, userT} from "../types";
 import {createUser} from "../autentification";
 import {Filter} from "mongodb";
 import {paginationSort} from "../PaginationAndSort";
-import {checkAuth, checkValidation, loginValidation, usersValidation} from "../validation";
+import {usersValidation} from "../validation";
 import {Result, ValidationError, validationResult} from "express-validator";
+import {AuthMiddleware} from "../AuthMiddleware";
 
 export const usersRouter = Router({});
 
 
-usersRouter.get('/', checkAuth,async (req: Request, res: Response) => {
+usersRouter.get('/',async (req: Request, res: Response) => {
   const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm} = await paginationSort(req)
   const filter: Filter<userT> = {$or: [{login: {$regex: searchLoginTerm ?? '', $options: 'i'}}, {email: {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
   const totalCount = await patreonUsers.countDocuments(filter)
@@ -36,21 +37,17 @@ usersRouter.get('/', checkAuth,async (req: Request, res: Response) => {
     items: users})
 })
 
-usersRouter.post('/', usersValidation, checkAuth, async(req: Request, res: Response) => {
+usersRouter.post('/', usersValidation, async(req: Request, res: Response) => {
 
   const resultValidation: Result<ValidationError> = validationResult(req)
   if(!resultValidation.isEmpty()){
-    const errors = resultValidation.array()
+    const errors = resultValidation.array({ onlyFirstError: true })
     const errorsFields: errorField[] = []
 
     errors.map((err: any) => {
       errorsFields.push({message: err.msg, field: err.path})
 
     })
-
-    if(errorsFields.length > 3){
-      errorsFields.splice(3)
-    }
     return res.status(400).send({errorsMessages: errorsFields})
 
   }
@@ -71,7 +68,7 @@ usersRouter.post('/', usersValidation, checkAuth, async(req: Request, res: Respo
   return res.status(201).send(viewUser)
 })
 
-usersRouter.delete('/:id',checkAuth, async(req: Request, res: Response) => {
+usersRouter.delete('/:id',AuthMiddleware, async(req: Request, res: Response) => {
   const id = req.params.id
   const result = await patreonUsers.deleteOne({id})
   if(result.deletedCount === 1){ return res.sendStatus(204)}

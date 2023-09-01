@@ -1,6 +1,9 @@
 import {userT} from "./types";
 import bcrypt from 'bcrypt'
 import * as uuid from 'uuid'
+import jwt from 'jsonwebtoken'
+
+const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 
 const generatedHash = async(password: string, salt: string) => {
     return await bcrypt.hash(password, salt)
@@ -19,4 +22,14 @@ export const createUser = async (login: string, email: string, password: string)
         passwordSalt,
         createdAt: new Date().toISOString()
     }
+}
+
+export const createToken = async (id: string) => {
+    return jwt.sign({userId: id},
+        secretKey, {expiresIn: '1h'})
+}
+
+export const getUserIdByToken = (token: string) => {
+    const result:any = jwt.verify(token, secretKey)
+    return result.userId
 }

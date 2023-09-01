@@ -43,6 +43,19 @@ export type postT = {
     blogId: string
     blogName: string
     createdAt: string
+    comments: commentsT[]
+}
+
+export type commentsT = {
+    id: string
+    commentatorInfo: commentatorInfoT
+    content: string
+    createdAt: string
+}
+
+export type commentatorInfoT = {
+    userId: string
+    userLogin: string
 }
 
 export type blogsT = {

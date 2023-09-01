@@ -21,4 +21,5 @@ export const patreonPosts = client.db('patreon').collection<postT>('posts')
 export const patreonVideos = client.db('patreon').collection<videoT>('videos')
 export const patreonBlogs = client.db('patreon').collection<blogsT>('blogs')
 export const patreonUsers = client.db('patreon').collection<userT>('users')
+export const patreonComments = client.db('patreon').collection<userT>('comments')
 

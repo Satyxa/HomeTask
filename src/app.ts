@@ -6,6 +6,7 @@ import {runDB} from "./db/db";
 import {patreonPosts, patreonBlogs, patreonVideos, patreonUsers} from './db/db'
 import {usersRouter} from "./routes/users";
 import {loginRouter} from "./routes/login";
+import {commentsRouter} from "./routes/comments";
 
 const app = express();
 const port = process.env.PORT || 5200
@@ -20,6 +21,7 @@ app.use('/blogs', blogsRouter)
 app.use('/posts', postsRouter)
 app.use('/users', usersRouter)
 app.use('/auth', loginRouter)
+app.use('/comments', commentsRouter)
 
 app.delete('/testing/all-data', async(req: Request, res: Response) => {
   await patreonBlogs.deleteMany({})
