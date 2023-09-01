@@ -10,13 +10,13 @@ export const commentsRouter = Router({})
 
 commentsRouter.get('/', async (req: Request, res: Response) => {
     const comments = await patreonComments.find({}).toArray()
-    res.status(200).send(comments)
+    return res.status(200).send(comments)
 })
 
 commentsRouter.get('/:id', async (req: Request, res: Response) => {
     const id = req.params.id
     const comment = await patreonComments.find({id}).toArray()
-    res.status(200).send(comment)
+    return res.status(200).send(comment)
 })
 
 commentsRouter.put('/:id', async(req:Request, res:Response) => {

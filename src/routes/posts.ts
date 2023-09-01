@@ -14,7 +14,7 @@ postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
     const id = req.params.id
     const post = patreonPosts.findOne({id})
     const comments = post.comments
-    res.status(200).send(comments)
+    return res.status(200).send(comments)
 })
 
 postsRouter.post('/:id/comments',AuthMiddleware, async (req:Request, res:Response) => {
@@ -77,7 +77,7 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
     const {id} = req.params
     const foundPost = await patreonPosts.find({id}, { projection : { _id:0 }}).toArray()
     if (!foundPost || foundPost.length === 0) {return res.sendStatus(404)}
-    else {res.status(200).send(foundPost[0])}
+    else {return res.status(200).send(foundPost[0])}
 })
 
 postsRouter.post('/', AuthMiddleware, postCreateValidation, async (req: Request, res: Response) => {
@@ -95,7 +95,7 @@ postsRouter.post('/', AuthMiddleware, postCreateValidation, async (req: Request,
         comments: []
     }
     await patreonPosts.insertOne({...newPost})
-    res.status(201).send(newPost)
+    return res.status(201).send(newPost)
 })
 
 postsRouter.put('/:id', AuthMiddleware, postCreateValidation, async (req: Request, res: Response) => {
