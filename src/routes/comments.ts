@@ -36,9 +36,9 @@ commentsRouter.delete('/:id', async (req: Request, res: Response) => {
     const id = req.params.id
     const result = await patreonComments.deleteOne({id})
     if(result.deletedCount === 0){
-        res.sendStatus(404)
+        return res.sendStatus(404)
     } else{
-        res.status(204)
+        return res.status(204)
     }
 })
 
