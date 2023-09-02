@@ -36,12 +36,7 @@ postsRouter.post('/:id/comments',AuthMiddleware, async (req:Request, res:Respons
     //@ts-ignore
     await patreonComments.insertOne(comment)
     //@ts-ignore
-    await patreonPosts.updateOne({id}, {
-        $push: {comments: {
-        userId: req.userId, userLogin, content
-        }
-    }
-    })
+    await patreonPosts.updateOne({id}, {$push: {comments: comment}})
 
     return res.status(201).send({userId: req.userId, userLogin, content})
 })
