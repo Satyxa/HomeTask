@@ -54,7 +54,7 @@ postsRouter.get('/', async (req: Request, res: Response) => {
         }
 
             const posts = await patreonPosts
-                .find({}, { projection : { _id:0 }})
+                .find({}, { projection : { _id:0, comments: 0 }})
                 //@ts-ignore
                 .sort({[sortBy]: sortDirection === 'desc' ? 'desc' : 'asc'})
                 .skip(pageSize * pageNumber - pageSize)

@@ -30,7 +30,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
         }
 
     const posts = await patreonPosts
-        .find({blogId: id}, { projection : { _id:0 }})
+        .find({blogId: id}, { projection : { _id:0, comments:0 }})
         //@ts-ignore
         .sort({[sortBy!]: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)
@@ -78,7 +78,7 @@ blogsRouter.get('/:id', async(req: Request, res: Response) => {
 blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request, res: Response) => {
     const {id} = req.params
     const blogs = await patreonBlogs
-        .find({id}, { projection : { _id:0 }}).toArray()
+        .find({id}, { projection : { _id:0}}).toArray()
     if(!blogs || blogs.length === 0) return res.sendStatus(404)
     const {title, shortDescription, content} = req.body
     const newPost: postT = {
