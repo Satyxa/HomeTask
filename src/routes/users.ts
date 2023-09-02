@@ -48,13 +48,13 @@ usersRouter.post('/', usersValidation, async(req: Request, res: Response) => {
       errorsFields.push({message: err.msg, field: err.path})
 
     })
-    return res.status(401).send({errorsMessages: errorsFields})
+    return res.status(400).send({errorsMessages: errorsFields})
 
   }
 
   const {email, login, password} = req.body
   if(!email || !login || !password){
-    return res.sendStatus(401)
+    return res.sendStatus(400)
   }
 
   const newUser: userT = await createUser(login, email, password)
