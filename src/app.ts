@@ -28,7 +28,7 @@ app.delete('/testing/all-data', async(req: Request, res: Response) => {
   await patreonVideos.deleteMany({})
   await patreonUsers.deleteMany({})
   await patreonComments.deleteMany({})
-  res.sendStatus(204)
+  return res.sendStatus(204)
 })
 const startApp = async () => {
   await runDB()
