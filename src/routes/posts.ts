@@ -27,7 +27,7 @@ postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
         }
     }
     const comments = await patreonComments
-        .find(filter, { projection : { _id:0 }})
+        .find(filter, { projection : { _id:0, postId: 0 }})
         .sort({[sortBy!]: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
