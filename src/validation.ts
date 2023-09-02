@@ -126,6 +126,22 @@ export const usersValidation = [
 export const commentValidator = [
     body('content', 'content failed').isLength({min: 20, max: 300})
 ]
+
+export const getResultValidation = (req, res) => {
+    const resultValidation: Result<ValidationError> = validationResult(req)
+    if(!resultValidation.isEmpty()){
+        const errors = resultValidation.array({ onlyFirstError: true })
+        const errorsFields: errorField[] = []
+
+        errors.map((err: any) => {
+            errorsFields.push({message: err.msg, field: err.path})
+
+        })
+        return res.status(400).send({errorsMessages: errorsFields})
+
+    }
+}
+
 //@ts-ignore
 export const checkValidation = (req: Request, res: Response, resultValidation) => {
     if (!resultValidation.isEmpty()) {
