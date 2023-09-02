@@ -6,7 +6,6 @@ import {Filter} from "mongodb";
 import {paginationSort} from "../PaginationAndSort";
 import {checkAuth, usersValidation} from "../validation";
 import {Result, ValidationError, validationResult} from "express-validator";
-import {AuthMiddleware} from "../AuthMiddleware";
 
 export const usersRouter = Router({});
 
@@ -37,7 +36,7 @@ usersRouter.get('/',async (req: Request, res: Response) => {
     items: users})
 })
 
-usersRouter.post('/', usersValidation, async(req: Request, res: Response) => {
+usersRouter.post('/', usersValidation, checkAuth, async(req: Request, res: Response) => {
 
   const resultValidation: Result<ValidationError> = validationResult(req)
   if(!resultValidation.isEmpty()){
