@@ -12,7 +12,7 @@ export const postsRouter = Router({})
 
 postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
     const id = req.params.id
-    const post = patreonPosts.findOne({id})
+    const post = await patreonPosts.findOne({id})
     const comments = post.comments
     return res.status(200).send(comments)
 })
@@ -70,9 +70,9 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 
 postsRouter.get('/:id', async (req: Request, res: Response) => {
     const {id} = req.params
-    const foundPost = await patreonPosts.find({id}, { projection : { _id:0 }}).toArray()
-    if (!foundPost || foundPost.length === 0) {return res.sendStatus(404)}
-    else {return res.status(200).send(foundPost[0])}
+    const foundPost = await patreonPosts.findOne({id}, { projection : { _id:0, comments: 0 }})
+    if (!foundPost) {return res.sendStatus(404)}
+    else {return res.status(200).send(foundPost)}
 })
 
 postsRouter.post('/', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
