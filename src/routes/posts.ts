@@ -90,6 +90,7 @@ postsRouter.post('/', checkAuth, postCreateValidation, async (req: Request, res:
         comments: []
     }
     await patreonPosts.insertOne({...newPost})
+    delete newPost.comments
     return res.status(201).send(newPost)
 })
 

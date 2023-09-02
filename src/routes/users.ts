@@ -4,7 +4,7 @@ import {errorField, userT} from "../types";
 import {createUser} from "../autentification";
 import {Filter} from "mongodb";
 import {paginationSort} from "../PaginationAndSort";
-import {usersValidation} from "../validation";
+import {checkAuth, usersValidation} from "../validation";
 import {Result, ValidationError, validationResult} from "express-validator";
 import {AuthMiddleware} from "../AuthMiddleware";
 
@@ -48,7 +48,7 @@ usersRouter.post('/', usersValidation, async(req: Request, res: Response) => {
       errorsFields.push({message: err.msg, field: err.path})
 
     })
-    return res.status(400).send({errorsMessages: errorsFields})
+    return res.status(401).send({errorsMessages: errorsFields})
 
   }
 
@@ -68,7 +68,7 @@ usersRouter.post('/', usersValidation, async(req: Request, res: Response) => {
   return res.status(201).send(viewUser)
 })
 
-usersRouter.delete('/:id',AuthMiddleware, async(req: Request, res: Response) => {
+usersRouter.delete('/:id',checkAuth, async(req: Request, res: Response) => {
   const id = req.params.id
   const result = await patreonUsers.deleteOne({id})
   if(result.deletedCount === 1){ return res.sendStatus(204)}
