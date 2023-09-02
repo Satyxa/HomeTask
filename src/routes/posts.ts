@@ -58,13 +58,19 @@ postsRouter.post('/:id/comments',AuthMiddleware, async (req:Request, res:Respons
             userLogin
         }
     }
+    const viewComment = {
+        content: comment.content,
+        commentatorInfo: comment.commentatorInfo,
+        createdAt: comment.createdAt,
+        id: comment.id
+    }
     console.log('ergergerg')
     //@ts-ignore
     await patreonComments.insertOne(comment)
     //@ts-ignore
     await patreonPosts.updateOne({id}, {$push: {comments: comment}})
-
-    return res.status(201).send({userId: req.userId, userLogin, content})
+//@ts-ignore
+    return res.status(201).send(viewComment)
 })
 
 postsRouter.get('/', async (req: Request, res: Response) => {
