@@ -5,7 +5,6 @@ import * as uuid from 'uuid'
 import {Filter} from "mongodb";
 import {blogsCreateValidation, postCreateValidation, checkAuth} from "../validation";
 import {paginationSort} from "../PaginationAndSort";
-import {AuthMiddleware} from "../AuthMiddleware";
 
 
 export const blogsRouter = Router({})

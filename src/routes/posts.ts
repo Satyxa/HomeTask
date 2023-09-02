@@ -1,32 +1,52 @@
 import {Router, Response, Request} from "express";
 import {patreonPosts, patreonBlogs, patreonComments, patreonUsers} from "../db/db";
-import {postT} from '../types'
+import {commentsT, postT} from '../types'
 import * as uuid from 'uuid'
 import {checkAuth, postCreateValidation} from "../validation";
 import {paginationSort} from "../PaginationAndSort";
 import {commentsRouter} from "./comments";
 import {AuthMiddleware} from "../AuthMiddleware";
+import {Filter} from "mongodb";
 
 
 export const postsRouter = Router({})
 
 postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
     const id = req.params.id
-    const post = await patreonPosts.findOne({id})
-    const comments = post!.comments
-    return res.status(200).send(comments)
+    const {pageNumber, pageSize, sortBy, searchNameTerm} = await paginationSort(req)
+    const filter: Filter<commentsT> = {$and: [{postId: id},{userLogin: {$regex: searchNameTerm ?? '', $options: 'i'}}]}
+    const totalCount = await patreonComments.countDocuments(filter)
+    const pagesCount = Math.ceil(totalCount / pageSize)
+
+    let sortDirection: 'asc' | 'desc' = "desc"
+    if(req.query.sortDirection){
+        if(req.query.sortDirection === 'asc'){
+            sortDirection = 'asc'
+        }
+    }
+    const comments = await patreonComments
+        .find(filter, { projection : { _id:0 }})
+        //@ts-ignore
+        .sort({[sortBy!]: sortDirection === 'desc' ? -1 : 1})
+        .skip(pageSize * pageNumber - pageSize)
+        .limit(pageSize)
+        .toArray()
+    return res.status(200).send({
+        pagesCount, page: +pageNumber,
+        pageSize, totalCount, items: comments})
 })
 
 postsRouter.post('/:id/comments',AuthMiddleware, async (req:Request, res:Response) => {
     const id = req.params.id
     const post = await patreonPosts.findOne({id})
     if(!post) return res.sendStatus(404)
-    const {content} = req.body
+    const content: string = req.body.content
     //@ts-ignore
     const user = await patreonUsers.findOne({id: req.userId})
     if(!user)return res.sendStatus(404)
     const userLogin = user!.login
     const comment = {
+        postId: id,
         id: uuid.v4(),
         userId: req.userId,
         userLogin,

@@ -47,8 +47,10 @@ export type postT = {
 }
 
 export type commentsT = {
+    postId: string
+    userId: string
+    userLogin: string
     id: string
-    commentatorInfo: commentatorInfoT
     content: string
     createdAt: string
 }

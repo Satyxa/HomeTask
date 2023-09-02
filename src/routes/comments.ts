@@ -1,13 +1,15 @@
 import {Router, Response, Request} from "express";
-import {patreonComments} from "../db/db";
+import {patreonBlogs, patreonComments} from "../db/db";
 import {AuthMiddleware} from "../AuthMiddleware";
+import {paginationSort} from "../PaginationAndSort";
+import {Filter} from "mongodb";
+import {commentsT} from "../types";
 
 
 export const commentsRouter = Router({})
 
 commentsRouter.get('/', async (req: Request, res: Response) => {
-    const comments = await patreonComments.find({}).toArray()
-    return res.status(200).send(comments)
+
 })
 
 commentsRouter.get('/:id', async (req: Request, res: Response) => {
