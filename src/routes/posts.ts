@@ -2,7 +2,7 @@ import {Router, Response, Request} from "express";
 import {patreonPosts, patreonBlogs, patreonComments, patreonUsers} from "../db/db";
 import {commentsT, errorField, postT} from '../types'
 import * as uuid from 'uuid'
-import {checkAuth, commentValidator, getResultValidation, postCreateValidation} from "../validation";
+import {checkAuth, commentValidator, postCreateValidation} from "../validation";
 import {paginationSort} from "../PaginationAndSort";
 import {commentsRouter} from "./comments";
 import {AuthMiddleware} from "../AuthMiddleware";
@@ -40,7 +40,18 @@ postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
 })
 
 postsRouter.post('/:id/comments', commentValidator,AuthMiddleware, async (req:Request, res:Response) => {
-    getResultValidation(req, res)
+    const resultValidation: Result<ValidationError> = validationResult(req)
+    if(!resultValidation.isEmpty()){
+        const errors = resultValidation.array({ onlyFirstError: true })
+        const errorsFields: errorField[] = []
+
+        errors.map((err: any) => {
+            errorsFields.push({message: err.msg, field: err.path})
+
+        })
+        return res.status(400).send({errorsMessages: errorsFields})
+
+    }
     const id = req.params.id
     const post = await patreonPosts.findOne({id})
     console.log(post)

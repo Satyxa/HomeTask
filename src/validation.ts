@@ -127,7 +127,7 @@ export const commentValidator = [
     body('content', 'content failed').isLength({min: 20, max: 300})
 ]
 
-export const getResultValidation = (req, res) => {
+export const getResultValidation = (req: Request, res: Response, next: NextFunction) => {
     const resultValidation: Result<ValidationError> = validationResult(req)
     if(!resultValidation.isEmpty()){
         const errors = resultValidation.array({ onlyFirstError: true })
@@ -139,7 +139,11 @@ export const getResultValidation = (req, res) => {
         })
         return res.status(400).send({errorsMessages: errorsFields})
 
+
+    } else {
+        next()
     }
+
 }
 
 //@ts-ignore
