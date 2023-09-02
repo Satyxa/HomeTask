@@ -8,13 +8,11 @@ import {commentsT} from "../types";
 
 export const commentsRouter = Router({})
 
-commentsRouter.get('/', async (req: Request, res: Response) => {
-
-})
 
 commentsRouter.get('/:id', async (req: Request, res: Response) => {
     const id = req.params.id
-    const comment = await patreonComments.find({id}).toArray()
+    const comment = await patreonComments.findOne({id})
+    console.log(comment)
     return res.status(200).send(comment)
 })
 

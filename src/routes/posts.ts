@@ -48,10 +48,12 @@ postsRouter.post('/:id/comments',AuthMiddleware, async (req:Request, res:Respons
     const comment = {
         postId: id,
         id: uuid.v4(),
-        userId: req.userId,
-        userLogin,
         content,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        commentatorInfo: {
+            userId: req.userId,
+            userLogin
+        }
     }
     //@ts-ignore
     await patreonComments.insertOne(comment)
