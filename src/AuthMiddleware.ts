@@ -6,7 +6,7 @@ export const AuthMiddleware = async (req: Request, res: Response, next: NextFunc
 
     const token = req.headers.authorization.split(' ')[1]
     const userId = getUserIdByToken(token)
-    if (!userId) return res.sendStatus(401)
+    if (!userId) return res.sendStatus(403)
     req.userId = userId
     next()
 }

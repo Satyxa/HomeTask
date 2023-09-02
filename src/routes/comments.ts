@@ -17,9 +17,13 @@ commentsRouter.get('/:id', async (req: Request, res: Response) => {
 })
 
 commentsRouter.put('/:id', AuthMiddleware, async(req:Request, res:Response) => {
+    console.log(req.userId)
     const id = req.params.id
     const comment = await patreonComments.findOne({id})
-    if(comment.userId !== req.userId) return res.sendStatus(403)
+    if (req.userId !== comment.commentatorInfo.userId) {
+        console.log('here')
+        return res.sendStatus(403)
+    }
     const content = req.body.content
     const result = await patreonComments
         .updateOne({id},
@@ -34,7 +38,10 @@ commentsRouter.put('/:id', AuthMiddleware, async(req:Request, res:Response) => {
 commentsRouter.delete('/:id', AuthMiddleware, async (req: Request, res: Response) => {
     const id = req.params.id
     const comment = await patreonComments.findOne({id})
-    if(comment.userId !== req.userId) return res.sendStatus(403)
+    if (req.userId !== comment.commentatorInfo.userId){
+        console.log('here')
+        return res.sendStatus(403)
+    }
     const result = await patreonComments.deleteOne({id})
     if(result.deletedCount === 0){
         return res.sendStatus(404)

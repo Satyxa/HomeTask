@@ -1,12 +1,13 @@
 import {Router, Response, Request} from "express";
 import {patreonPosts, patreonBlogs, patreonComments, patreonUsers} from "../db/db";
-import {commentsT, postT} from '../types'
+import {commentsT, errorField, postT} from '../types'
 import * as uuid from 'uuid'
-import {checkAuth, postCreateValidation} from "../validation";
+import {checkAuth, commentValidator, postCreateValidation} from "../validation";
 import {paginationSort} from "../PaginationAndSort";
 import {commentsRouter} from "./comments";
 import {AuthMiddleware} from "../AuthMiddleware";
 import {Filter} from "mongodb";
+import {body, Result, ValidationError, validationResult} from "express-validator";
 
 
 export const postsRouter = Router({})
@@ -38,12 +39,25 @@ postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
         pageSize, totalCount, items: comments})
 })
 
-postsRouter.post('/:id/comments',AuthMiddleware, async (req:Request, res:Response) => {
+postsRouter.post('/:id/comments',AuthMiddleware,commentValidator, async (req:Request, res:Response) => {
+    const resultValidation: Result<ValidationError> = validationResult(req)
+    if(!resultValidation.isEmpty()){
+        const errors = resultValidation.array({ onlyFirstError: true })
+        const errorsFields: errorField[] = []
+
+        errors.map((err: any) => {
+            errorsFields.push({message: err.msg, field: err.path})
+
+        })
+        return res.status(400).send({errorsMessages: errorsFields})
+
+    }
     const id = req.params.id
     const post = await patreonPosts.findOne({id})
     console.log(post)
     if(!post) return res.sendStatus(404)
     const content: string = req.body.content
+
     //@ts-ignore
     const user = await patreonUsers.findOne({id: req.userId})
     if(!user)return res.sendStatus(404)

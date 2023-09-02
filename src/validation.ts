@@ -122,6 +122,10 @@ export const usersValidation = [
     body('email', 'incorrect email').isString().isLength({min: 6, max: 20}).isEmail(),
 
 ]
+
+export const commentValidator = [
+    body('content', 'content failed').isLength({min: 20, max: 300})
+]
 //@ts-ignore
 export const checkValidation = (req: Request, res: Response, resultValidation) => {
     if (!resultValidation.isEmpty()) {
