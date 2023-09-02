@@ -75,7 +75,7 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
     else {return res.status(200).send(foundPost[0])}
 })
 
-postsRouter.post('/', AuthMiddleware, postCreateValidation, async (req: Request, res: Response) => {
+postsRouter.post('/', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
     const {title, shortDescription, content, blogId} = req.body
     const blog = await patreonBlogs.findOne({id: blogId})
     if(!blog) return res.sendStatus(404)
@@ -93,7 +93,7 @@ postsRouter.post('/', AuthMiddleware, postCreateValidation, async (req: Request,
     return res.status(201).send(newPost)
 })
 
-postsRouter.put('/:id', AuthMiddleware, postCreateValidation, async (req: Request, res: Response) => {
+postsRouter.put('/:id', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
     const {id} = req.params
     const {title, shortDescription, content, blogId} = req.body
     const blog = await patreonBlogs.findOne({id: blogId})
@@ -111,7 +111,7 @@ postsRouter.put('/:id', AuthMiddleware, postCreateValidation, async (req: Reques
     else {return res.sendStatus(404)}
 })
 
-postsRouter.delete('/:id', AuthMiddleware,async (req: Request, res: Response) => {
+postsRouter.delete('/:id', checkAuth,async (req: Request, res: Response) => {
     const {id} = req.params
     const result = await patreonPosts.deleteOne({id})
     if(result.deletedCount === 1){return res.sendStatus(204)}
