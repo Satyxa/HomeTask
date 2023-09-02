@@ -7,7 +7,7 @@ import {paginationSort} from "../PaginationAndSort";
 import {checkAuth, usersValidation} from "../validation";
 import {Result, ValidationError, validationResult} from "express-validator";
 
-export const usersRouter = Router({});
+export const usersRouter = Router({})
 
 
 usersRouter.get('/',async (req: Request, res: Response) => {

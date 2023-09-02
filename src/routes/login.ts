@@ -30,7 +30,7 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
     const isValidPassword = await bcrypt.compare(password, foundUser[0].passwordHash)
     if(isValidPassword) {
         const token = await createToken(foundUser[0].id)
-        return res.status(200).send(token)
+        return res.status(200).send({accessToken: token})
     }
     else {
         return res.sendStatus(401)
