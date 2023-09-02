@@ -30,12 +30,12 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
         }
 
     const posts = await patreonPosts
-        .find({blogId: id}, { projection : { _id:0, comments:0 }})
-        //@ts-ignore
+        .find({blogId: id}, { projection: { _id:0, comments:0 }})
         .sort({[sortBy!]: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
         .toArray()
+    console.log(posts)
     return res.status(200).send({
             pagesCount, page: pageNumber,
             pageSize, totalCount, items: posts})
@@ -47,7 +47,7 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
     const totalCount = await patreonBlogs.countDocuments(filter)
     const pagesCount = Math.ceil(totalCount / pageSize)
 
-        let sortDirection = "desc"
+        let sortDirection: 'asc' | 'desc' = "desc"
         if(req.query.sortDirection){
             if(req.query.sortDirection === 'asc'){
                 sortDirection = 'asc'
@@ -56,7 +56,7 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
     const blogs = await patreonBlogs
         .find(filter, { projection : { _id:0 }})
         //@ts-ignore
-        .sort({[sortBy]: sortDirection === 'desc' ? -1 : 1})
+        .sort({[sortBy!]: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
         .toArray()
@@ -92,6 +92,7 @@ blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request
         comments: []
     }
     await patreonPosts.insertOne({...newPost})
+    delete newPost.comments
     res.status(201).send(newPost)
 })
 

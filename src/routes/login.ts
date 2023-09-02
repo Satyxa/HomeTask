@@ -1,11 +1,10 @@
-import {Router, Request, Response, NextFunction} from "express";
+import {Router, Request, Response} from "express";
 import {patreonUsers} from "../db/db";
 import bcrypt from "bcrypt";
 import {createToken, getUserIdByToken} from "../autentification";
-import {AuthMiddleware} from "../AuthMiddleware";
 export const loginRouter = Router({});
 
-loginRouter.get('/me', async (req: Request, res: Response, next: NextFunction) => {
+loginRouter.get('/me', async (req: Request, res: Response) => {
     if(!req.headers.authorization){
         return res.sendStatus(401)
     }
@@ -31,8 +30,6 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
     const isValidPassword = await bcrypt.compare(password, foundUser[0].passwordHash)
     if(isValidPassword) {
         const token = await createToken(foundUser[0].id)
-        //@ts-ignore
-        req.userId = token
         return res.status(200).send(token)
     }
     else {

@@ -13,7 +13,7 @@ export const postsRouter = Router({})
 postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
     const id = req.params.id
     const post = await patreonPosts.findOne({id})
-    const comments = post.comments
+    const comments = post!.comments
     return res.status(200).send(comments)
 })
 
