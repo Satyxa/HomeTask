@@ -13,8 +13,10 @@ export const postsRouter = Router({})
 
 postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
     const id = req.params.id
+    console.log(id)
     const {pageNumber, pageSize, sortBy, searchNameTerm} = await paginationSort(req)
-    const filter: Filter<commentsT> = {$and: [{postId: id},{userLogin: {$regex: searchNameTerm ?? '', $options: 'i'}}]}
+    // const filter: Filter<commentsT> = {$and: [{postId: id},{userLogin: {$regex: searchNameTerm ?? '', $options: 'i'}}]}
+    const filter: Filter<commentsT> = {postId: id}
     const totalCount = await patreonComments.countDocuments(filter)
     const pagesCount = Math.ceil(totalCount / pageSize)
 
@@ -26,11 +28,11 @@ postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
     }
     const comments = await patreonComments
         .find(filter, { projection : { _id:0 }})
-        //@ts-ignore
         .sort({[sortBy!]: sortDirection === 'desc' ? -1 : 1})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
         .toArray()
+
     return res.status(200).send({
         pagesCount, page: +pageNumber,
         pageSize, totalCount, items: comments})
@@ -39,6 +41,7 @@ postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
 postsRouter.post('/:id/comments',AuthMiddleware, async (req:Request, res:Response) => {
     const id = req.params.id
     const post = await patreonPosts.findOne({id})
+    console.log(post)
     if(!post) return res.sendStatus(404)
     const content: string = req.body.content
     //@ts-ignore
@@ -55,6 +58,7 @@ postsRouter.post('/:id/comments',AuthMiddleware, async (req:Request, res:Respons
             userLogin
         }
     }
+    console.log('ergergerg')
     //@ts-ignore
     await patreonComments.insertOne(comment)
     //@ts-ignore
