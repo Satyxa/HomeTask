@@ -1,9 +1,5 @@
 import {Router, Response, Request} from "express";
-import {patreonComments, patreonBlogs, patreonPosts} from "../db/db";
-import {postT} from '../types'
-import * as uuid from 'uuid'
-import {checkAuth, postCreateValidation} from "../validation";
-import {paginationSort} from "../PaginationAndSort";
+import {patreonComments} from "../db/db";
 import {AuthMiddleware} from "../AuthMiddleware";
 
 
