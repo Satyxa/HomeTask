@@ -48,7 +48,7 @@ usersRouter.post('/', usersValidation, async(req: Request, res: Response) => {
       errorsFields.push({message: err.msg, field: err.path})
 
     })
-    return res.status(400).send({errorsMessages: errorsFields})
+    return res.status(401).send({errorsMessages: errorsFields})
 
   }
 
