@@ -14,6 +14,7 @@ export const commentsRouter = Router({})
 commentsRouter.get('/:id', async (req: Request, res: Response) => {
     const id = req.params.id
     const comment = await patreonComments.findOne({id}, {projection: {_id: 0, postId: 0}})
+    if(!comment) return res.sendStatus(404)
     return res.status(200).send(comment)
 })
 

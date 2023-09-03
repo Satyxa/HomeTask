@@ -19,7 +19,8 @@ postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
     const filter: Filter<commentsT> = {postId: id}
     const totalCount = await patreonComments.countDocuments(filter)
     const pagesCount = Math.ceil(totalCount / pageSize)
-
+    const post = await patreonPosts.findOne({id})
+    if (!post)return res.sendStatus(404)
     let sortDirection: 'asc' | 'desc' = "desc"
     if(req.query.sortDirection){
         if(req.query.sortDirection === 'asc'){
