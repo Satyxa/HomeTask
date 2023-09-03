@@ -7,15 +7,13 @@ export const DB_Utils = {
     findBlog: async(req: Request, res: Response) => {
         const {id} = req.params
         const foundBlog = await patreonBlogs.findOne({id}, { projection : { _id:0 }})
-        if(!foundBlog) return res.sendStatus(404)
-        else return {id, foundBlog}
+        return {id, foundBlog}
     },
 
     findPost: async(req: Request, res: Response) => {
         const {id} = req.params
         const foundPost = await patreonPosts.findOne({id}, { projection : { _id:0, comments: 0 }})
-        if (!foundPost) {return res.sendStatus(404)}
-        else return {id, foundPost}
+        return {id, foundPost}
     },
 
     createNewVideo: (newVideoId, title, author, dateNow, availableResolutions) => {

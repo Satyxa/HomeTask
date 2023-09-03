@@ -41,7 +41,8 @@ blogsRouter.get('/:id', async(req: Request, res: Response) => {
 })
 
 blogsRouter.post('/:id/posts',checkAuth,...postCreateValidation, checkValidation, async(req: Request, res: Response) => {
-    const {id} = await DB_Utils.findBlog(req, res)
+    const {id, foundBlog} = await DB_Utils.findBlog(req, res)
+    if(!foundBlog) return res.sendStatus(404)
     const {title, shortDescription, content} = req.body
     const newPost: postT = {
         id: uuid.v4(),
