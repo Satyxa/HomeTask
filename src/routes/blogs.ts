@@ -13,7 +13,8 @@ import {DB_Utils} from "../DB-utils";
 export const blogsRouter = Router({})
 
 blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
-    const {id} = await DB_Utils.findBlog(req, res)
+    const {id, foundBlog} = await DB_Utils.findBlog(req, res)
+    if (!foundBlog) return res.sendStatus(404)
     const {pageNumber, pageSize, sortBy, sortDirection} = await paginationSort(req)
 
     const totalCount = await patreonPosts.countDocuments({blogId: id})
@@ -37,6 +38,7 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
 
 blogsRouter.get('/:id', async(req: Request, res: Response) => {
     const {foundBlog} = await DB_Utils.findBlog(req, res)
+    if (!foundBlog) return res.sendStatus(404)
     return res.status(200).send(foundBlog)
 })
 
