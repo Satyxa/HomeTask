@@ -14,7 +14,6 @@ export const commentsRouter = Router({})
 commentsRouter.get('/:id', async (req: Request, res: Response) => {
     const id = req.params.id
     const comment = await patreonComments.findOne({id}, {projection: {_id: 0, postId: 0}})
-    console.log(comment)
     return res.status(200).send(comment)
 })
 
@@ -30,14 +29,10 @@ commentsRouter.put('/:id', commentValidator,AuthMiddleware, async(req:Request, r
         return res.status(400).send({errorsMessages: errorsFields})
 
     }
-    console.log(req.userId)
     const id = req.params.id
     const comment = await patreonComments.findOne({id})
     if (!comment) return res.sendStatus(404)
-    if (req.userId !== comment.commentatorInfo.userId) {
-        console.log('here')
-        return res.sendStatus(403)
-    }
+    if (req.userId !== comment.commentatorInfo.userId)return res.sendStatus(403)
     const content = req.body.content
     const result = await patreonComments
         .updateOne({id},
@@ -53,15 +48,12 @@ commentsRouter.delete('/:id', AuthMiddleware, async (req: Request, res: Response
     const id = req.params.id
     const comment = await patreonComments.findOne({id})
     if (!comment) return res.sendStatus(404)
-    if (req.userId !== comment.commentatorInfo.userId){
-        console.log('here')
-        return res.sendStatus(403)
-    }
+    if (req.userId !== comment.commentatorInfo.userId)return res.sendStatus(403)
     const result = await patreonComments.deleteOne({id})
     if(result.deletedCount === 0){
         return res.sendStatus(404)
     } else{
-        return res.status(204)
+        return res.sendStatus(204)
     }
 })
 

@@ -14,7 +14,6 @@ export const postsRouter = Router({})
 
 postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
     const id = req.params.id
-    console.log(id)
     const {pageNumber, pageSize, sortBy, searchNameTerm} = await paginationSort(req)
     // const filter: Filter<commentsT> = {$and: [{postId: id},{userLogin: {$regex: searchNameTerm ?? '', $options: 'i'}}]}
     const filter: Filter<commentsT> = {postId: id}
@@ -54,7 +53,6 @@ postsRouter.post('/:id/comments', commentValidator,AuthMiddleware, async (req:Re
     }
     const id = req.params.id
     const post = await patreonPosts.findOne({id})
-    console.log(post)
     if(!post) return res.sendStatus(404)
     const content: string = req.body.content
 
