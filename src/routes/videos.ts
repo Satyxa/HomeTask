@@ -1,7 +1,8 @@
 import {Router, Response, Request} from "express";
 import {patreonVideos} from "../db/db";
 import {videoT, ValidationErrorType, updatedVideoType} from "../types";
-import {createVideoValidation, updateVideoValidation} from "../validation";
+import {checkValidation, createVideoValidation, getResultValidation, updateVideoValidation} from "../validation";
+import {DB_Utils} from "../DB-utils";
 
 export const videosRouter = Router({})
 
@@ -12,66 +13,33 @@ videosRouter.get('/', async (req: Request, res: Response) => {
 
 videosRouter.get('/:id', async(req: Request, res: Response) => {
   const id = +req.params.id
-  const video = await patreonVideos.find({id}).toArray()
-  if(!video) {res.sendStatus(404)}
-  else{res.status(200).send(video)}
+  const video = await patreonVideos.findOne({id})
+  if(!video) return res.sendStatus(404)
+  else return res.status(200).send(video)
 })
 
-videosRouter.post('/',  async (req: Request, res: Response) => {
+videosRouter.post('/',  ...createVideoValidation,checkValidation, async (req: Request, res: Response) => {
   const {title, author, availableResolutions} = req.body
-  const errors: ValidationErrorType[] = []
-  errors.push(...createVideoValidation(title, author, availableResolutions))
-  if(errors.length){
-    return res.status(400).send({
-      errorsMessages: errors
-    })
-  }
 
   const dateNow = new Date()
-
-  const newVideo: videoT = {
-    id: 11,
-    title,
-    author,
-    canBeDownloaded: false,
-    minAgeRestriction: null,
-    createdAt: dateNow.toISOString(),
-    publicationDate: new Date(dateNow.setDate(dateNow.getDate() + 1)).toISOString(),
-    availableResolutions
-  }
+  const newVideoId = await patreonVideos.countDocuments({})
+  const newVideo: videoT = DB_Utils.createNewVideo(newVideoId, title, author, dateNow, availableResolutions)
 
   await patreonVideos.insertOne(newVideo)
   return res.status(201).send(newVideo)
 })
 
-videosRouter.put('/:id', async (req: Request, res: Response) => {
-  const id = +req.params.id
-  const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
-  const video = await patreonVideos.find({id}).toArray()
-  if(!video) res.sendStatus(404)
-
-  const errors: ValidationErrorType[] = []
-
-  errors.push(...updateVideoValidation(canBeDownloaded, minAgeRestriction, publicationDate))
-  errors.push(...createVideoValidation(title, author, availableResolutions))
+videosRouter.put('/:id', ...updateVideoValidation,checkValidation, async (req: Request, res: Response) => {
   const dateNow = new Date()
+  const id = +req.params.id
+  if(!await patreonVideos.findOne({id})) res.sendStatus(404)
 
-  if(errors.length){
-    return res.status(400).send({
-      errorsMessages: errors
-    })
-  }
+  const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
 
-  const updatedVideo: updatedVideoType = {
-    id: +id as number,
-    title: title as string,
-    author: author as string,
-    createdAt: video[0].createdAt,
-    publicationDate,
-    availableResolutions,
-    canBeDownloaded,
-    minAgeRestriction
-  }
+  const updatedVideo: updatedVideoType = DB_Utils.updateVideo(
+      title, author,minAgeRestriction,
+      availableResolutions, publicationDate, canBeDownloaded)
+
   const result = await patreonVideos.updateOne({id}, updatedVideo)
 
   if(result.matchedCount === 1) {return res.sendStatus(204)}

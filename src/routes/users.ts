@@ -1,63 +1,32 @@
-import {Request, Response, Router} from "express";
+import {NextFunction, Request, Response, Router} from "express";
 import {patreonUsers} from "../db/db";
-import {errorField, userT} from "../types";
+import {userT} from "../types";
 import {createUser} from "../autentification";
 import {Filter} from "mongodb";
-import {paginationSort} from "../PaginationAndSort";
-import {checkAuth, usersValidation} from "../validation";
-import {Result, ValidationError, validationResult} from "express-validator";
+import {paginationSort, usersPagAndSort} from "../PaginationAndSort";
+import {checkAuth, checkValidation, usersValidation} from "../validation";
 
 export const usersRouter = Router({})
 
-
 usersRouter.get('/',async (req: Request, res: Response) => {
-  const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm} = await paginationSort(req)
+  const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm, sortDirection} = await paginationSort(req)
   const filter: Filter<userT> = {$or: [{login: {$regex: searchLoginTerm ?? '', $options: 'i'}}, {email: {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
   const totalCount = await patreonUsers.countDocuments(filter)
   const pagesCount = Math.ceil(totalCount / pageSize)
-  let sortDirection: "desc" | "asc" = "desc"
-  if(req.query.sortDirection){
-    if(req.query.sortDirection === 'asc'){
-      sortDirection = 'asc'
-    }
-  }
 
-  const users = await patreonUsers
-      .find(filter, { projection : { _id:0, passwordHash: 0, passwordSalt: 0 }})
-      .sort({[sortBy]: sortDirection})
-      .skip(pageSize * pageNumber - pageSize)
-      .limit(pageSize)
-      .toArray()
+  const users = await usersPagAndSort(filter, sortBy, sortDirection, pageSize, pageNumber)
   return res.status(200).send({
-    pagesCount,
-    page: pageNumber,
-    pageSize,
-    totalCount,
-    items: users})
+    pagesCount, page: pageNumber, pageSize,
+    totalCount, items: users})
 })
 
-usersRouter.post('/', usersValidation, checkAuth, async(req: Request, res: Response) => {
-
-  const resultValidation: Result<ValidationError> = validationResult(req)
-  if(!resultValidation.isEmpty()){
-    const errors = resultValidation.array({ onlyFirstError: true })
-    const errorsFields: errorField[] = []
-
-    errors.map((err: any) => {
-      errorsFields.push({message: err.msg, field: err.path})
-
-    })
-    return res.status(400).send({errorsMessages: errorsFields})
-
-  }
-
+usersRouter.post('/', usersValidation,checkValidation, checkAuth, async(req: Request, res: Response) => {
   const {email, login, password} = req.body
-  if(!email || !login || !password){
-    return res.sendStatus(400)
-  }
+  if(!email || !login || !password) return res.sendStatus(400)
 
   const newUser: userT = await createUser(login, email, password)
   await patreonUsers.insertOne({...newUser})
+
   const viewUser = {
     id: newUser.id,
     login: newUser.login,

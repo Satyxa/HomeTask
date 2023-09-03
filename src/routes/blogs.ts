@@ -1,84 +1,47 @@
 import {Router, Response, Request} from "express";
-import {patreonBlogs, patreonPosts, patreonUsers} from "../db/db";
+import {patreonBlogs, patreonPosts} from "../db/db";
 import {postT, blogsT} from '../types'
 import * as uuid from 'uuid'
 import {Filter} from "mongodb";
-import {blogsCreateValidation, postCreateValidation, checkAuth} from "../validation";
-import {paginationSort} from "../PaginationAndSort";
+import {blogsCreateValidation, postCreateValidation, checkAuth,
+    checkValidation
+} from "../validation";
+import {blogPagAndSort, paginationSort, postPagAndSort} from "../PaginationAndSort";
+import {DB_Utils} from "../DB-utils";
 
 
 export const blogsRouter = Router({})
 
 blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
-    const {id} = req.params
-    const findBlog = await patreonBlogs.find({id}, { projection : { _id:0 }}).toArray()
+    const {id} = await DB_Utils.findBlog(req, res)
+    const {pageNumber, pageSize, sortBy, sortDirection} = await paginationSort(req)
 
-    if(!findBlog || findBlog.length === 0) return res.sendStatus(404)
-
-    const pageNumber = req.query.pageNumber ? +req.query.pageNumber : 1
-    const pageSize:number = req.query.pageSize ? +req.query.pageSize : 10
-    const sortBy = req.query.sortBy as string ? req.query.sortBy : 'createdAt'
     const totalCount = await patreonPosts.countDocuments({blogId: id})
     const pagesCount = Math.ceil(totalCount / pageSize)
-
-    let sortDirection = "desc"
-        if(req.query.sortDirection){
-            if(req.query.sortDirection === 'asc'){
-                sortDirection = 'asc'
-            }
-        }
-
-    const posts = await patreonPosts
-        .find({blogId: id}, { projection: { _id:0, comments:0 }})
-        .sort({[sortBy!]: sortDirection === 'desc' ? -1 : 1})
-        .skip(pageSize * pageNumber - pageSize)
-        .limit(pageSize)
-        .toArray()
-    console.log(posts)
+    const findFilter = {blogId: id}
+    const posts = await postPagAndSort(findFilter, sortBy, sortDirection , pageSize, pageNumber)
     return res.status(200).send({
             pagesCount, page: pageNumber,
             pageSize, totalCount, items: posts})
 })
 
 blogsRouter.get('/', async(req: Request, res: Response) => {
-    const {pageNumber, pageSize, sortBy, searchNameTerm} = await paginationSort(req)
+    const {pageNumber, pageSize, sortBy, searchNameTerm, sortDirection} = await paginationSort(req)
     const filter: Filter<blogsT> = {name: {$regex: searchNameTerm ?? '', $options: 'i'}}
     const totalCount = await patreonBlogs.countDocuments(filter)
     const pagesCount = Math.ceil(totalCount / pageSize)
 
-        let sortDirection: 'asc' | 'desc' = "desc"
-        if(req.query.sortDirection){
-            if(req.query.sortDirection === 'asc'){
-                sortDirection = 'asc'
-            }
-        }
-    const blogs = await patreonBlogs
-        .find(filter, { projection : { _id:0 }})
-        //@ts-ignore
-        .sort({[sortBy!]: sortDirection === 'desc' ? -1 : 1})
-        .skip(pageSize * pageNumber - pageSize)
-        .limit(pageSize)
-        .toArray()
-
-        return res.status(200).send({
-                                        pagesCount, page: +pageNumber,
-                                        pageSize, totalCount, items: blogs})
+    const blogs = await blogPagAndSort(filter, sortBy, sortDirection , pageSize, pageNumber)
+    return res.status(200).send({pagesCount, page: +pageNumber, pageSize, totalCount, items: blogs})
 })
 
 blogsRouter.get('/:id', async(req: Request, res: Response) => {
-    const {id} = req.params
-    const foundBlog = await patreonBlogs
-        .find({id}, { projection : { _id:0 }})
-        .toArray()
-    if(!foundBlog || foundBlog.length === 0){return res.sendStatus(404)}
-    else {res.status(200).send(foundBlog[0])}
+    const {foundBlog} = await DB_Utils.findBlog(req, res)
+    return res.status(200).send(foundBlog)
 })
 
-blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request, res: Response) => {
-    const {id} = req.params
-    const blogs = await patreonBlogs
-        .find({id}, { projection : { _id:0}}).toArray()
-    if(!blogs || blogs.length === 0) return res.sendStatus(404)
+blogsRouter.post('/:id/posts',checkAuth,...postCreateValidation, checkValidation, async(req: Request, res: Response) => {
+    const {id} = await DB_Utils.findBlog(req, res)
     const {title, shortDescription, content} = req.body
     const newPost: postT = {
         id: uuid.v4(),
@@ -95,7 +58,7 @@ blogsRouter.post('/:id/posts',checkAuth,postCreateValidation, async(req: Request
     res.status(201).send(newPost)
 })
 
-blogsRouter.post('/',checkAuth, blogsCreateValidation, async(req: Request, res: Response) => {
+blogsRouter.post('/',checkAuth, ...blogsCreateValidation,checkValidation, async(req: Request, res: Response) => {
     const {name, description, websiteUrl} = req.body
         const newBlog: blogsT = {
             id: uuid.v4(),
@@ -109,21 +72,20 @@ blogsRouter.post('/',checkAuth, blogsCreateValidation, async(req: Request, res: 
     res.status(201).send(newBlog)
 })
 
-blogsRouter.put('/:id',checkAuth,  blogsCreateValidation, async(req:Request, res: Response)=>{
+blogsRouter.put('/:id', checkAuth, ...blogsCreateValidation,checkValidation, async(req:Request, res: Response)=>{
     const {id} = req.params
     const {name, description, websiteUrl} = req.body
         const result = await patreonBlogs.updateOne({id}, {
             $set: {id, name, description, websiteUrl}
         })
-    if(result.matchedCount === 1){return res.sendStatus(204)}
-    else {return res.sendStatus(404)}
+    if(result.matchedCount === 1) return res.sendStatus(204)
+    else return res.sendStatus(404)
 })
 
 blogsRouter.delete('/:id',checkAuth, async (req: Request, res: Response) => {
     const {id} = req.params
     const result = await patreonBlogs.deleteOne({id})
-
-    if(result.deletedCount === 1){return res.sendStatus(204)}
-    else {return res.sendStatus(404)}
+    if (result.deletedCount === 1) return res.sendStatus(204)
+    else return res.sendStatus(404)
 })
 

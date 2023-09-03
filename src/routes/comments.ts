@@ -1,11 +1,7 @@
 import {Router, Response, Request} from "express";
-import {patreonBlogs, patreonComments} from "../db/db";
+import {patreonComments} from "../db/db";
 import {AuthMiddleware} from "../AuthMiddleware";
-import {paginationSort} from "../PaginationAndSort";
-import {Filter} from "mongodb";
-import {commentsT, errorField} from "../types";
-import {commentValidator} from "../validation";
-import {Result, ValidationError, validationResult} from "express-validator";
+import {commentValidator, getResultValidation} from "../validation";
 
 
 export const commentsRouter = Router({})
@@ -19,17 +15,8 @@ commentsRouter.get('/:id', async (req: Request, res: Response) => {
 })
 
 commentsRouter.put('/:id', commentValidator,AuthMiddleware, async(req:Request, res:Response) => {
-    const resultValidation: Result<ValidationError> = validationResult(req)
-    if(!resultValidation.isEmpty()){
-        const errors = resultValidation.array({ onlyFirstError: true })
-        const errorsFields: errorField[] = []
-
-        errors.map((err: any) => {
-            errorsFields.push({message: err.msg, field: err.path})
-        })
-        return res.status(400).send({errorsMessages: errorsFields})
-
-    }
+    const resultValidation = getResultValidation(req)
+    if (resultValidation !== 1) return res.status(400).send({errorsMessages: resultValidation})
     const id = req.params.id
     const comment = await patreonComments.findOne({id})
     if (!comment) return res.sendStatus(404)

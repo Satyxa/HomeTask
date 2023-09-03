@@ -1,116 +1,63 @@
 import {NextFunction, Request, Response} from "express";
-import {errorField, ValidationErrorType} from "./types";
+import {errorField} from "./types";
 import {patreonBlogs} from "./db/db";
 import {body, Result, ValidationError, validationResult} from "express-validator";
-
-export const blogsCreateValidation = (req: Request, res: Response, next: NextFunction) => {
-    const {name, description, websiteUrl} = req.body
-    const errors:ValidationErrorType[] = []
-    if(!name || !name.trim() || name.length > 15){
-        errors.push({message: 'invalid name', field: 'name'})
-    }
-    if(!description || !description.trim() || description.length > 500){
-        errors.push({message: 'invalid description', field: 'description'})
-    }
-    if(!websiteUrl || websiteUrl.length > 100 || !websiteUrl.includes('http', 0) ){
-        errors.push({message: 'invalid websiteUrl', field: 'websiteUrl'})
-    }
-    if (errors.length){
-        return res.status(400).send({
-            errorsMessages: errors
-        })
-    } else {
-        next()
-    }
-}
+import exp from "constants";
 
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
-    if (req.headers.authorization) {
+    const headersData = req.headers.authorization
+    if (headersData) {
 
-        if(req.headers.authorization === 'Basic admin:qwerty'){
-            return res.sendStatus(401)
-        }
-        const data = atob((req.headers.authorization).replace('Basic ', ''))
+        if(headersData === 'Basic admin:qwerty')return res.sendStatus(401)
+
+        const data = atob((headersData).replace('Basic ', ''))
         const login = data.split(':')[0]
         const password = data.split(':')[1]
-        if (login === 'admin' && password === 'qwerty') {
-            next()
-        } else {
-            return res.sendStatus(401)
-        }
-    } else {
-        return res.sendStatus(401)
-    }
+
+        if (login === 'admin' && password === 'qwerty') next()
+        else return res.sendStatus(401)
+
+    } else return res.sendStatus(401)
 
 }
 
-export const postCreateValidation = async (req: Request, res: Response, next: NextFunction) => {
-    const {title, shortDescription, content, blogId} = req.body
-    const errors: ValidationErrorType[] = []
-    if (!title || !title.trim() || title.length > 30) {
-        errors.push({message: 'invalid title', field: 'title'})
-    }
-    if (!shortDescription || !shortDescription.trim() || shortDescription.length > 100) {
-        errors.push({message: 'invalid shortDescription', field: 'shortDescription'})
-    }
-    if (!content || !content.trim() || content.length > 1000) {
-        errors.push({message: 'invalid content', field: 'content'})
-    }
-    if(blogId) {
-        const result = await patreonBlogs.findOne({id: blogId})
-        if(!result){
-            errors.push({message: 'no such blog', field: 'blogId'})
-        }
-    }
-    if(errors.length){
-        return res.status(400).send({
-            errorsMessages: errors
+export const createVideoValidation = [
+    body('title', 'title invalid').trim().isLength({max: 40}),
+    body('author', 'author invalid').trim().isLength({max: 20}),
+    body('availableResolutions', 'availableResolutions invalid').isArray().custom(async val => {
+        const AvRes = ['P144', 'P240', 'P360', 'P480', 'P720', 'P1080', 'P1440', 'P2160']
+        val.map(resolution => {
+            if(!AvRes.includes(resolution)){
+                throw new Error('not existing resolution')
+            } else return true
         })
-    } else {
-        next()
-    }
-}
+    }),
+]
 
-export const createVideoValidation = (title: string, author: string,
-                               availableResolutions: Array<string>) => {
-    const AvRes = ['P144', 'P240', 'P360', 'P480', 'P720', 'P1080', 'P1440', 'P2160']
-    const errors: ValidationErrorType[] = []
-    if(!title || !title.trim() || title.length > 40 ) {
-        errors.push({message: 'invalid title', field: 'title'})
-    }
-    if(!author || !author.trim() || author.length > 20)  {
-        errors.push({message: 'invalid author', field: 'author'})
-    }
+export const updateVideoValidation = [
+    body('canBeDownloaded', 'canBeDownloaded Invalid').isBoolean(),
+    body('minAgeRestriction', 'minAgeRestriction Invalid').isNumeric().isFloat({min: 1, max: 18}),
+    body('publicationDate', 'publicationDate Invalid').isString().trim(),
+]
 
-    if(!availableResolutions) {
-        errors.push({message: 'invalid availableResolutions', field: 'availableResolutions'})
-    } else if(availableResolutions){
-        availableResolutions.map(ar => {
-            if(!AvRes.includes(ar)){
-                errors.push({message: 'invalid avail222ableResolutions', field: 'availableResolutions'})
-            }
-        })
-    }
-    return errors
-}
+export const postCreateValidation = [
+    body('title', 'title Invalid').trim().isLength({max: 30}),
+    body('shortDescription', 'shortDescription Invalid').trim().isLength({max: 100}),
+    body('content', 'content Invalid').trim().isLength({max: 1000}),
+    body('blogId', 'blogId Invalid').isString().custom(async val => {
+        const result = await patreonBlogs.findOne({id: val})
+        if (!result) throw new Error('not existing blogId')
+        else return true
+    })
+]
 
-export const updateVideoValidation = (canBeDownloaded: boolean, minAgeRestriction: number,
-                                      publicationDate: string) => {
-    const errors: ValidationErrorType[] = []
+export const blogsCreateValidation = [
+    body('name', 'name invalid').trim().isLength({max: 15}),
+    body('description', 'description invalid').trim().isLength({max: 500}),
+    body('websiteUrl', 'websiteUrl invalid').trim().isURL().isLength({max: 100})
+]
 
-    if(!canBeDownloaded){
-        errors.push({message: 'invalid canBeDownloaded', field: 'canBeDownloaded'})
-    }
-    if(!minAgeRestriction || minAgeRestriction > 18 || minAgeRestriction < 1){
-        errors.push({message: 'invalid minAgeRestriction', field: 'minAgeRestriction'})
-    }
-    if(!publicationDate){
-        errors.push({message: 'invalid publicationDate', field: 'publicationDate'})
-    }
-    return errors
-}
-
-export const loginValidation = [
+export const registerValidation = [
     body('password', 'incorrect password').isString().isLength({min: 6, max: 20}),
     body('email', 'incorrect email').optional().isString().isLength({min: 6, max: 20}).isEmail(),
     body('login', 'incorrect login').optional().isString().isLength({min: 3, max: 10})
@@ -119,15 +66,14 @@ export const loginValidation = [
 export const usersValidation = [
     body('login', 'incorrect login').isString().isLength({min: 3, max: 10}),
     body('password', 'incorrect password').isString().isLength({min: 6, max: 20}),
-    body('email', 'incorrect email').isString().isLength({min: 6, max: 20}).isEmail(),
-
+    body('email', 'incorrect email').isString().isEmail(),
 ]
 
 export const commentValidator = [
     body('content', 'content failed').isLength({min: 20, max: 300})
 ]
 
-export const getResultValidation = (req: Request, res: Response, next: NextFunction) => {
+export const getResultValidation = (req: Request) => {
     const resultValidation: Result<ValidationError> = validationResult(req)
     if(!resultValidation.isEmpty()){
         const errors = resultValidation.array({ onlyFirstError: true })
@@ -137,28 +83,17 @@ export const getResultValidation = (req: Request, res: Response, next: NextFunct
             errorsFields.push({message: err.msg, field: err.path})
 
         })
-        return res.status(400).send({errorsMessages: errorsFields})
+        return errorsFields
 
 
     } else {
-        next()
+        return 1
     }
 
 }
 
-//@ts-ignore
-export const checkValidation = (req: Request, res: Response, resultValidation) => {
-    if (!resultValidation.isEmpty()) {
-        const errors = resultValidation.array()
-
-        const errorsFields: errorField[] = []
-        if (!errors.length) {
-            errors.map((err: any) => {
-                errorsFields.push({message: err.msg, field: err.path})
-            })
-        }
-
-        return errorsFields || []
-    }
-
+export const checkValidation = (req, res, next) => {
+    const resultValidation = getResultValidation(req)
+    if (resultValidation !== 1) return res.status(400).send({errorsMessages: resultValidation})
+    else next()
 }

@@ -1,5 +1,5 @@
 import express, { Request, Response} from 'express'
-import { videosRouter} from "./routes/videos";
+import {videosRouter} from "./routes/videos";
 import {blogsRouter} from "./routes/blogs";
 import {postsRouter} from "./routes/posts";
 import {patreonPosts, patreonBlogs, patreonVideos, patreonUsers, patreonComments, runDB} from './db/db'
@@ -9,9 +9,7 @@ import {commentsRouter} from "./routes/comments";
 
 const app = express();
 const port = process.env.PORT || 5200
-app.get('/', async (req: Request, res: Response) => {
-  await res.send('privet')
-})
+app.get('/', (req: Request, res: Response) => res.send('privet'))
 
 
 app.use(express.json());
@@ -32,9 +30,7 @@ app.delete('/testing/all-data', async(req: Request, res: Response) => {
 })
 const startApp = async () => {
   await runDB()
-  app.listen(port, () => {
-    console.log( 'server 5200 ok')
-  })
+  app.listen(port, () => console.log( 'server 5200 ok'))
 }
 
 startApp()

@@ -5,10 +5,8 @@ import jwt from 'jsonwebtoken'
 
 const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 
-const generatedHash = async(password: string, salt: string) => {
-    return await bcrypt.hash(password, salt)
+const generatedHash = async (password: string, salt: string) => await bcrypt.hash(password, salt)
 
-}
 
 export const createUser = async (login: string, email: string, password: string): Promise<userT> => {
     const passwordSalt = await bcrypt.genSalt(10)
@@ -25,8 +23,7 @@ export const createUser = async (login: string, email: string, password: string)
 }
 
 export const createToken = async (id: string) => {
-    return jwt.sign({userId: id},
-        secretKey, {expiresIn: '1h'})
+    return jwt.sign({userId: id}, secretKey, {expiresIn: '1h'})
 }
 
 export const getUserIdByToken = (token: string) => {

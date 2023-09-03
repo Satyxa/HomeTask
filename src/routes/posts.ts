@@ -1,145 +1,75 @@
 import {Router, Response, Request} from "express";
 import {patreonPosts, patreonBlogs, patreonComments, patreonUsers} from "../db/db";
-import {commentsT, errorField, postT} from '../types'
-import * as uuid from 'uuid'
-import {checkAuth, commentValidator, postCreateValidation} from "../validation";
-import {paginationSort} from "../PaginationAndSort";
-import {commentsRouter} from "./comments";
+import {commentsT, postT} from '../types'
+import {checkAuth, checkValidation, commentValidator, postCreateValidation} from "../validation";
+import {commentsPagAndSort, paginationSort, postPagAndSort} from "../PaginationAndSort";
 import {AuthMiddleware} from "../AuthMiddleware";
 import {Filter} from "mongodb";
-import {body, Result, ValidationError, validationResult} from "express-validator";
+import {DB_Utils} from "../DB-utils";
 
 
 export const postsRouter = Router({})
 
 postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
     const id = req.params.id
-    const {pageNumber, pageSize, sortBy, searchNameTerm} = await paginationSort(req)
+    const {pageNumber, pageSize, sortBy, sortDirection} = await paginationSort(req)
     // const filter: Filter<commentsT> = {$and: [{postId: id},{userLogin: {$regex: searchNameTerm ?? '', $options: 'i'}}]}
     const filter: Filter<commentsT> = {postId: id}
     const totalCount = await patreonComments.countDocuments(filter)
     const pagesCount = Math.ceil(totalCount / pageSize)
-    const post = await patreonPosts.findOne({id})
-    if (!post)return res.sendStatus(404)
-    let sortDirection: 'asc' | 'desc' = "desc"
-    if(req.query.sortDirection){
-        if(req.query.sortDirection === 'asc'){
-            sortDirection = 'asc'
-        }
-    }
-    const comments = await patreonComments
-        .find(filter, { projection : { _id:0, postId: 0 }})
-        .sort({[sortBy!]: sortDirection === 'desc' ? -1 : 1})
-        .skip(pageSize * pageNumber - pageSize)
-        .limit(pageSize)
-        .toArray()
+
+    if (!await patreonPosts.findOne({id}))return res.sendStatus(404)
+
+    const comments = await commentsPagAndSort(filter, sortBy, sortDirection, pageSize, pageNumber)
 
     return res.status(200).send({
         pagesCount, page: +pageNumber,
         pageSize, totalCount, items: comments})
 })
 
-postsRouter.post('/:id/comments', commentValidator,AuthMiddleware, async (req:Request, res:Response) => {
-    const resultValidation: Result<ValidationError> = validationResult(req)
-    if(!resultValidation.isEmpty()){
-        const errors = resultValidation.array({ onlyFirstError: true })
-        const errorsFields: errorField[] = []
-
-        errors.map((err: any) => {
-            errorsFields.push({message: err.msg, field: err.path})
-
-        })
-        return res.status(400).send({errorsMessages: errorsFields})
-
-    }
+postsRouter.post('/:id/comments',AuthMiddleware, ...commentValidator, checkValidation, async (req:Request, res:Response) => {
     const id = req.params.id
-    const post = await patreonPosts.findOne({id})
-    if(!post) return res.sendStatus(404)
     const content: string = req.body.content
 
-    //@ts-ignore
-    const user = await patreonUsers.findOne({id: req.userId})
+    if(!await patreonPosts.findOne({id})) return res.sendStatus(404)
+    const user = await patreonUsers.findOne({id: req.userId!})
     if(!user)return res.sendStatus(404)
-    const userLogin = user!.login
-    const comment = {
-        postId: id,
-        id: uuid.v4(),
-        content,
-        createdAt: new Date().toISOString(),
-        commentatorInfo: {
-            userId: req.userId,
-            userLogin
-        }
-    }
-    const viewComment = {
-        content: comment.content,
-        commentatorInfo: comment.commentatorInfo,
-        createdAt: comment.createdAt,
-        id: comment.id
-    }
-    console.log('ergergerg')
-    //@ts-ignore
-    await patreonComments.insertOne(comment)
-    //@ts-ignore
+
+    const {comment, viewComment} = DB_Utils.createComment(id, content, user)
+
+    await patreonComments.insertOne({...comment})
     await patreonPosts.updateOne({id}, {$push: {comments: comment}})
-//@ts-ignore
     return res.status(201).send(viewComment)
 })
 
 postsRouter.get('/', async (req: Request, res: Response) => {
-    const {pageNumber, pageSize, sortBy} = await paginationSort(req)
+    const {pageNumber, pageSize, sortBy, sortDirection} = await paginationSort(req)
     const totalCount = await patreonPosts.countDocuments({})
     const pagesCount = Math.ceil(totalCount / pageSize)
 
-        let sortDirection: 'desc' | 'asc' = "desc"
-        if(req.query.sortDirection){
-            if(req.query.sortDirection === 'asc'){
-                sortDirection = 'asc'
-            }
-        }
-
-            const posts = await patreonPosts
-                .find({}, { projection : { _id:0, comments: 0 }})
-                //@ts-ignore
-                .sort({[sortBy]: sortDirection === 'desc' ? 'desc' : 'asc'})
-                .skip(pageSize * pageNumber - pageSize)
-                .limit(pageSize)
-                .toArray()
-            return res.status(200).send({
-                pagesCount,
-                page: pageNumber,
-                pageSize,
-                totalCount,
-                items: posts})
+    const posts = await postPagAndSort({}, sortBy, sortDirection, pageSize, pageNumber)
+    return res.status(200).send({
+    pagesCount, page: pageNumber,
+    pageSize, totalCount, items: posts})
 })
 
 postsRouter.get('/:id', async (req: Request, res: Response) => {
-    const {id} = req.params
-    const foundPost = await patreonPosts.findOne({id}, { projection : { _id:0, comments: 0 }})
-    if (!foundPost) {return res.sendStatus(404)}
-    else {return res.status(200).send(foundPost)}
+    const {foundPost} = await DB_Utils.findPost(req, res)
+    return res.status(200).send(foundPost)
 })
 
-postsRouter.post('/', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
+postsRouter.post('/', checkAuth, ...postCreateValidation, checkValidation, async (req: Request, res: Response) => {
     const {title, shortDescription, content, blogId} = req.body
     const blog = await patreonBlogs.findOne({id: blogId})
     if(!blog) return res.sendStatus(404)
-    const newPost: postT = {
-        id: uuid.v4(),
-        title,
-        shortDescription,
-        content,
-        blogId,
-        blogName: blog.name,
-        createdAt: new Date().toISOString(),
-        comments: []
-    }
+    const newPost: postT = DB_Utils.createPost(title, shortDescription, content, blogId, blog.name)
+
     await patreonPosts.insertOne({...newPost})
     delete newPost.comments
     return res.status(201).send(newPost)
 })
 
-postsRouter.put('/:id', checkAuth, postCreateValidation, async (req: Request, res: Response) => {
+postsRouter.put('/:id', checkAuth, ...postCreateValidation, checkValidation, async (req: Request, res: Response) => {
     const {id} = req.params
     const {title, shortDescription, content, blogId} = req.body
     const blog = await patreonBlogs.findOne({id: blogId})
@@ -160,6 +90,6 @@ postsRouter.put('/:id', checkAuth, postCreateValidation, async (req: Request, re
 postsRouter.delete('/:id', checkAuth,async (req: Request, res: Response) => {
     const {id} = req.params
     const result = await patreonPosts.deleteOne({id})
-    if(result.deletedCount === 1){return res.sendStatus(204)}
-    else {return res.sendStatus(404)}
+    if(result.deletedCount === 1) return res.sendStatus(204)
+    else return res.sendStatus(404)
 })
