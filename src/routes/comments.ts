@@ -26,7 +26,6 @@ commentsRouter.put('/:id', commentValidator,AuthMiddleware, async(req:Request, r
 
         errors.map((err: any) => {
             errorsFields.push({message: err.msg, field: err.path})
-
         })
         return res.status(400).send({errorsMessages: errorsFields})
 
