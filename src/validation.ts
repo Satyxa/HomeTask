@@ -55,9 +55,9 @@ export const blogIdValidation = [
 ]
 
 export const blogsCreateValidation = [
-    body('name', 'name invalid').exists().trim().isLength({max: 15}),
-    body('description', 'description invalid').exists().trim().isLength({max: 500}),
-    body('websiteUrl', 'websiteUrl invalid').exists().trim().isURL().isLength({max: 100})
+    body('name', 'name invalid').exists().isString().trim().isLength({max: 15, min: 1}),
+    body('description', 'description invalid').exists().trim().isLength({max: 500, min: 1}),
+    body('websiteUrl', 'websiteUrl invalid').exists().trim().isURL().isLength({max: 100, min: 1})
 ]
 
 export const registerValidation = [
