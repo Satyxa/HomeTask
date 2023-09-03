@@ -22,8 +22,8 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
 }
 
 export const createVideoValidation = [
-    body('title', 'title invalid').exists().trim().isLength({max: 40}),
-    body('author', 'author invalid').exists().trim().isLength({max: 20}),
+    body('title', 'title invalid').exists().trim().isLength({max: 40, min: 1}),
+    body('author', 'author invalid').exists().trim().isLength({max: 20, min: 1}),
     body('availableResolutions', 'availableResolutions invalid').exists().isArray().custom(async val => {
         const AvRes = ['P144', 'P240', 'P360', 'P480', 'P720', 'P1080', 'P1440', 'P2160']
         val.map(resolution => {
@@ -41,9 +41,9 @@ export const updateVideoValidation = [
 ]
 
 export const postCreateValidation = [
-    body('title', 'title Invalid').exists().trim().isLength({max: 30}),
-    body('shortDescription', 'shortDescription Invalid').exists().trim().isLength({max: 100}),
-    body('content', 'content Invalid').exists().trim().isLength({max: 1000}),
+    body('title', 'title Invalid').exists().trim().isLength({max: 30, min: 1}),
+    body('shortDescription', 'shortDescription Invalid').exists().trim().isLength({max: 100, min: 1}),
+    body('content', 'content Invalid').exists().trim().isLength({max: 1000, min: 1}),
 ]
 
 export const blogIdValidation = [
