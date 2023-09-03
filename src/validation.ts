@@ -22,9 +22,9 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
 }
 
 export const createVideoValidation = [
-    body('title', 'title invalid').trim().isLength({max: 40}),
-    body('author', 'author invalid').trim().isLength({max: 20}),
-    body('availableResolutions', 'availableResolutions invalid').isArray().custom(async val => {
+    body('title', 'title invalid').exists().trim().isLength({max: 40}),
+    body('author', 'author invalid').exists().trim().isLength({max: 20}),
+    body('availableResolutions', 'availableResolutions invalid').exists().isArray().custom(async val => {
         const AvRes = ['P144', 'P240', 'P360', 'P480', 'P720', 'P1080', 'P1440', 'P2160']
         val.map(resolution => {
             if(!AvRes.includes(resolution)){
@@ -35,19 +35,19 @@ export const createVideoValidation = [
 ]
 
 export const updateVideoValidation = [
-    body('canBeDownloaded', 'canBeDownloaded Invalid').isBoolean(),
-    body('minAgeRestriction', 'minAgeRestriction Invalid').isNumeric().isFloat({min: 1, max: 18}),
-    body('publicationDate', 'publicationDate Invalid').isString().trim(),
+    body('canBeDownloaded', 'canBeDownloaded Invalid').exists().isBoolean(),
+    body('minAgeRestriction', 'minAgeRestriction Invalid').exists().isNumeric().isFloat({min: 1, max: 18}),
+    body('publicationDate', 'publicationDate Invalid').exists().isString().trim(),
 ]
 
 export const postCreateValidation = [
-    body('title', 'title Invalid').trim().isLength({max: 30}),
-    body('shortDescription', 'shortDescription Invalid').trim().isLength({max: 100}),
-    body('content', 'content Invalid').trim().isLength({max: 1000}),
+    body('title', 'title Invalid').exists().trim().isLength({max: 30}),
+    body('shortDescription', 'shortDescription Invalid').exists().trim().isLength({max: 100}),
+    body('content', 'content Invalid').exists().trim().isLength({max: 1000}),
 ]
 
 export const blogIdValidation = [
-    body('blogId', 'blogId Invalid').isString().custom(async val => {
+    body('blogId', 'blogId Invalid').exists().isString().custom(async val => {
         const result = await patreonBlogs.findOne({id: val})
         if (!result) throw new Error('not existing blogId')
         else return true
@@ -55,9 +55,9 @@ export const blogIdValidation = [
 ]
 
 export const blogsCreateValidation = [
-    body('name', 'name invalid').trim().isLength({max: 15}),
-    body('description', 'description invalid').trim().isLength({max: 500}),
-    body('websiteUrl', 'websiteUrl invalid').trim().isURL().isLength({max: 100})
+    body('name', 'name invalid').exists().trim().isLength({max: 15}),
+    body('description', 'description invalid').exists().trim().isLength({max: 500}),
+    body('websiteUrl', 'websiteUrl invalid').exists().trim().isURL().isLength({max: 100})
 ]
 
 export const registerValidation = [
@@ -67,13 +67,13 @@ export const registerValidation = [
 ]
 
 export const usersValidation = [
-    body('login', 'incorrect login').isString().isLength({min: 3, max: 10}),
-    body('password', 'incorrect password').isString().isLength({min: 6, max: 20}),
-    body('email', 'incorrect email').isString().isEmail(),
+    body('login', 'incorrect login').exists().isString().isLength({min: 3, max: 10}),
+    body('password', 'incorrect password').exists().isString().isLength({min: 6, max: 20}),
+    body('email', 'incorrect email').exists().isString().isEmail(),
 ]
 
 export const commentValidator = [
-    body('content', 'content failed').isLength({min: 20, max: 300})
+    body('content', 'content failed').exists().isLength({min: 20, max: 300})
 ]
 
 export const getResultValidation = (req: Request) => {
