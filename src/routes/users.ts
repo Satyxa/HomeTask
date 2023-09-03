@@ -20,9 +20,9 @@ usersRouter.get('/',async (req: Request, res: Response) => {
     totalCount, items: users})
 })
 
-usersRouter.post('/', usersValidation,checkValidation, checkAuth, async(req: Request, res: Response) => {
+usersRouter.post('/', checkAuth, usersValidation,checkValidation,  async(req: Request, res: Response) => {
   const {email, login, password} = req.body
-  if(!email || !login || !password) return res.sendStatus(400)
+  if(!email || !login || !password) return res.sendStatus(401)
 
   const newUser: userT = await createUser(login, email, password)
   await patreonUsers.insertOne({...newUser})
