@@ -1,7 +1,7 @@
 import {Router, Response, Request} from "express";
 import {patreonPosts, patreonBlogs, patreonComments, patreonUsers} from "../db/db";
 import {commentsT, postT} from '../types'
-import {checkAuth, checkValidation, commentValidator, postCreateValidation} from "../validation";
+import {blogIdValidation, checkAuth, checkValidation, commentValidator, postCreateValidation} from "../validation";
 import {commentsPagAndSort, paginationSort, postPagAndSort} from "../PaginationAndSort";
 import {AuthMiddleware} from "../AuthMiddleware";
 import {Filter} from "mongodb";
@@ -58,7 +58,7 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
     return res.status(200).send(foundPost)
 })
 
-postsRouter.post('/', checkAuth, ...postCreateValidation, checkValidation, async (req: Request, res: Response) => {
+postsRouter.post('/', checkAuth, ...postCreateValidation, ...blogIdValidation, checkValidation, async (req: Request, res: Response) => {
     const {title, shortDescription, content, blogId} = req.body
     const blog = await patreonBlogs.findOne({id: blogId})
     if(!blog) return res.sendStatus(404)

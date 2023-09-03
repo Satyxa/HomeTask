@@ -44,6 +44,9 @@ export const postCreateValidation = [
     body('title', 'title Invalid').trim().isLength({max: 30}),
     body('shortDescription', 'shortDescription Invalid').trim().isLength({max: 100}),
     body('content', 'content Invalid').trim().isLength({max: 1000}),
+]
+
+export const blogIdValidation = [
     body('blogId', 'blogId Invalid').isString().custom(async val => {
         const result = await patreonBlogs.findOne({id: val})
         if (!result) throw new Error('not existing blogId')
