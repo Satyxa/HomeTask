@@ -70,7 +70,7 @@ postsRouter.post('/', checkAuth, ...postCreateValidation, ...blogIdValidation, c
     return res.status(201).send(newPost)
 })
 
-postsRouter.put('/:id', checkAuth, ...postCreateValidation, checkValidation, async (req: Request, res: Response) => {
+postsRouter.put('/:id', checkAuth, ...postCreateValidation,...blogIdValidation, checkValidation, async (req: Request, res: Response) => {
     const {id} = req.params
     const {title, shortDescription, content, blogId} = req.body
     const blog = await patreonBlogs.findOne({id: blogId})
