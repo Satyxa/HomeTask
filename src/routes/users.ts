@@ -20,7 +20,7 @@ usersRouter.get('/',async (req: Request, res: Response) => {
     totalCount, items: users})
 })
 
-usersRouter.post('/', checkAuth, usersValidation,checkValidation,  async(req: Request, res: Response) => {
+usersRouter.post('/', checkAuth, ...usersValidation,checkValidation,  async(req: Request, res: Response) => {
   const {email, login, password} = req.body
   if(!email || !login || !password) return res.sendStatus(401)
 
