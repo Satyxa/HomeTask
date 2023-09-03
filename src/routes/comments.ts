@@ -33,6 +33,7 @@ commentsRouter.put('/:id', commentValidator,AuthMiddleware, async(req:Request, r
     console.log(req.userId)
     const id = req.params.id
     const comment = await patreonComments.findOne({id})
+    if (!comment) return res.sendStatus(404)
     if (req.userId !== comment.commentatorInfo.userId) {
         console.log('here')
         return res.sendStatus(403)
@@ -51,6 +52,7 @@ commentsRouter.put('/:id', commentValidator,AuthMiddleware, async(req:Request, r
 commentsRouter.delete('/:id', AuthMiddleware, async (req: Request, res: Response) => {
     const id = req.params.id
     const comment = await patreonComments.findOne({id})
+    if (!comment) return res.sendStatus(404)
     if (req.userId !== comment.commentatorInfo.userId){
         console.log('here')
         return res.sendStatus(403)
