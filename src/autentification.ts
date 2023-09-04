@@ -1,26 +1,35 @@
-import {userT} from "./types";
+import {UserAccountDBType, userT} from "./types";
 import bcrypt from 'bcrypt'
 import * as uuid from 'uuid'
 import jwt from 'jsonwebtoken'
-
+import add from 'date-fns/add'
+import {patreonUsers} from "./db/db";
+import {Filter} from "mongodb";
 const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 
 const generatedHash = async (password: string, salt: string) => await bcrypt.hash(password, salt)
 
 
-export const createUser = async (login: string, email: string, password: string): Promise<userT> => {
+export const createUser = async (login: string, email: string, password: string): Promise<UserAccountDBType> => {
     const passwordSalt = await bcrypt.genSalt(10)
     const passwordHash = await generatedHash(password, passwordSalt)
-
     return {
         id: uuid.v4(),
-        login,
-        email,
-        passwordHash,
-        passwordSalt,
-        createdAt: new Date().toISOString()
+        AccountData: {
+            username: login,
+            email,
+            passwordHash,
+            createdAt: new Date().toISOString()
+        },
+        EmailConfirmation: {
+            confirmationCode: uuid.v4(),
+            expirationDate: add(new Date(), {hours: 1, minutes: 3}).toISOString(),
+            isConfirmed: false
+        }
     }
 }
+
+
 
 export const createToken = async (id: string) => {
     return jwt.sign({userId: id}, secretKey, {expiresIn: '1h'})

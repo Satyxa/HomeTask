@@ -12,6 +12,25 @@ export type errorField = {
     message: string
 }
 
+export type AccountDataType = {
+    username: string
+    email: string
+    passwordHash: string
+    createdAt: string
+}
+
+export type EmailConfirmationType = {
+    confirmationCode: string
+    expirationDate: string
+    isConfirmed: boolean
+}
+
+export type UserAccountDBType = {
+    id: string
+    AccountData: AccountDataType
+    EmailConfirmation: EmailConfirmationType
+}
+
 export type userLoginT = {
     password: string
     loginOrEmail: string

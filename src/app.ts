@@ -6,6 +6,8 @@ import {patreonPosts, patreonBlogs, patreonVideos, patreonUsers, patreonComments
 import {usersRouter} from "./routes/users";
 import {loginRouter} from "./routes/login";
 import {commentsRouter} from "./routes/comments";
+import {registrationRouter} from "./routes/registration";
+import {emailRouter} from "./routes/email";
 
 const app = express();
 const port = process.env.PORT || 5200
@@ -18,7 +20,9 @@ app.use('/blogs', blogsRouter)
 app.use('/posts', postsRouter)
 app.use('/users', usersRouter)
 app.use('/auth', loginRouter)
+app.use('/auth', registrationRouter)
 app.use('/comments', commentsRouter)
+app.use('/auth', emailRouter)
 
 app.delete('/testing/all-data', async(req: Request, res: Response) => {
   await patreonBlogs.deleteMany({})

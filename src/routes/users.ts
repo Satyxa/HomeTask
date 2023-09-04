@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response, Router} from "express";
 import {patreonUsers} from "../db/db";
-import {userT} from "../types";
+import {UserAccountDBType, userT} from "../types";
 import {createUser} from "../autentification";
 import {Filter} from "mongodb";
 import {paginationSort, usersPagAndSort} from "../PaginationAndSort";
@@ -24,14 +24,14 @@ usersRouter.post('/', checkAuth, ...usersValidation,checkValidation,  async(req:
   const {email, login, password} = req.body
   if(!email || !login || !password) return res.sendStatus(401)
 
-  const newUser: userT = await createUser(login, email, password)
+  const newUser: UserAccountDBType = await createUser(login, email, password)
   await patreonUsers.insertOne({...newUser})
 
   const viewUser = {
     id: newUser.id,
-    login: newUser.login,
-    email: newUser.email,
-    createdAt: newUser.createdAt
+    login: newUser.AccountData.username,
+    email: newUser.AccountData.email,
+    createdAt: newUser.AccountData.createdAt
   }
   return res.status(201).send(viewUser)
 })

@@ -18,7 +18,6 @@ loginRouter.get('/me', async (req: Request, res: Response) => {
         return res.status(200).send({email, login, userId})
     }
 })
-
 loginRouter.post('/login', async (req: Request, res: Response) => {
     const {loginOrEmail, password} = req.body
     if(!loginOrEmail || !password )return res.sendStatus(400)
