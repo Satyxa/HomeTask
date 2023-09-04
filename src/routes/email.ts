@@ -13,7 +13,7 @@ emailRouter.post('/registration-confirmation', async (req: Request, res: Respons
         const result = await patreonUsers.updateOne({"EmailConfirmation.confirmationCode": code}, {$set: {
                 "EmailConfirmation.isConfirmed": true
             }})
-        if(result.matchedCount === 1) return res.status(200).send({code})
+        if(result.matchedCount === 1) return res.status(204)
         else return res.sendStatus(404)
 
 
