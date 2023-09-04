@@ -17,6 +17,6 @@ export const emailAdapter = {
             subject,
             html: message
         })
-        return res.status(200).send('email push')
+        return res.status(204)
     },
 }

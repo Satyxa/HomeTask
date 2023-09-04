@@ -8,7 +8,7 @@ import {Filter} from "mongodb";
 
 export const registrationRouter = Router({})
 
-registrationRouter.post('/registration', checkAuth, ...usersValidation, checkValidation,  async(req: Request, res: Response) => {
+registrationRouter.post('/registration', ...usersValidation, checkValidation,  async(req: Request, res: Response) => {
     const {email, login, password} = req.body
     if(!email || !login || !password) return res.sendStatus(401)
     const filter: Filter<userT> = {$or: [{'AccountData.username': {$regex: login, $options: 'i'}}, {'AccountData.email': {$regex: email, $options: 'i'}}]}
