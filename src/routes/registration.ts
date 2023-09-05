@@ -19,7 +19,7 @@ registrationRouter.post('/registration', ...usersValidation, checkValidation,  a
     console.log('before email send')
     await emailAdapter.sendEmail(newUser.AccountData.email, 'Confirm your email', `<h1>Thank for your registration</h1>
     <p>To finish registration please follow the link below:
-        <a href='https://home-task-f6h9.vercel.app/registration-confirmation?code=${newUser.EmailConfirmation.confirmationCode}'>complete registration</a>
+        <a href='https://home-task-f6h9.vercel.app/auth/registration-confirmation?code=${newUser.EmailConfirmation.confirmationCode}'>complete registration</a>
     </p>`, res)
 
     return res.status(204)
