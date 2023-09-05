@@ -26,7 +26,7 @@ emailRouter.post('/registration-confirmation', async (req: Request, res: Respons
             }
         })
         if (result.matchedCount === 1) return res.sendStatus(204)
-        else return res.sendStatus(404)
+        else return res.sendStatus(400)
 
     } catch (err){
         console.log(err)
