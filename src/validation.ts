@@ -72,7 +72,7 @@ export const emailResending = [
 
 export const registerValidation = [
     body('password', 'incorrect password').exists().isString().isLength({min: 6, max: 20}),
-    body('email', 'incorrect email').exists().isString().isLength({min: 6, max: 20}).isEmail().custom(async (val) => {
+    body('email', 'incorrect email').exists().isString().isEmail().custom(async (val) => {
         const result = await patreonUsers.findOne({'AccountData.email': val})
         console.log(result)
         if(result){
