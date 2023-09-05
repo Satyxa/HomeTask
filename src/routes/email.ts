@@ -45,7 +45,7 @@ registrationRouter.post('/registration-email-resending', ...emailResending, chec
     else if(user.EmailConfirmation.isConfirmed) return res.sendStatus(400)
     const message = `<h1>Thank for your registration</h1>
     <p>To finish registration please follow the link below:
-        <a href='https://home-task-f6h9.vercel.app/auth/registration-confirmation?code=${newCode}'>complete registration</a>
+        <a href=https://somesite.com/confirm-email?code=${newCode}>complete registration</a>
     </p>`
     await emailAdapter.sendEmail(email, 'email confirmation', message, res)
 })
