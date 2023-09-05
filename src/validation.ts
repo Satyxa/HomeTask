@@ -64,8 +64,8 @@ export const emailResending = [
     body('email', 'incorrect email').exists().isString().isLength({min: 6}).isEmail().custom(async (val) => {
         const result = await patreonUsers.findOne({'AccountData.email': val})
         console.log(result)
-        if(result){
-            throw new Error('email already exist')
+        if(!result){
+            throw new Error('email not exist')
         } else return true
     }),
 ]
