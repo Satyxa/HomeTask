@@ -60,6 +60,16 @@ export const blogsCreateValidation = [
     body('websiteUrl', 'websiteUrl invalid').exists().trim().isURL().isLength({max: 100, min: 1})
 ]
 
+export const emailResending = [
+    body('email', 'incorrect email').exists().isString().isLength({min: 6}).isEmail().custom(async (val) => {
+        const result = await patreonUsers.findOne({'AccountData.email': val})
+        console.log(result)
+        if(result){
+            throw new Error('email already exist')
+        } else return true
+    }),
+]
+
 export const registerValidation = [
     body('password', 'incorrect password').exists().isString().isLength({min: 6, max: 20}),
     body('email', 'incorrect email').exists().isString().isLength({min: 6, max: 20}).isEmail().custom(async (val) => {

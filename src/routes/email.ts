@@ -6,6 +6,7 @@ import {registrationRouter} from "./registration";
 import * as uuid from 'uuid'
 import {UserAccountDBType} from "../types";
 import {ModifyResult, UpdateResult} from "mongodb";
+import {checkValidation, emailResending} from "../validation";
 export const emailRouter = Router({})
 
 emailRouter.post('/registration-confirmation', async (req: Request, res: Response) => {
@@ -30,7 +31,7 @@ emailRouter.post('/', async (req: Request, res: Response) => {
     await emailAdapter.sendEmail(email, subject, message, res)
 })
 
-registrationRouter.post('/registration-email-resending', async (req: Request, res: Response) => {
+registrationRouter.post('/registration-email-resending', ...emailResending, checkValidation, async (req: Request, res: Response) => {
     const email: string = req.body.email
     if (!email) return res.sendStatus(400)
     const user = await patreonUsers.findOne({'AccountData.email': email})
@@ -40,7 +41,7 @@ registrationRouter.post('/registration-email-resending', async (req: Request, re
     {returnDocument: 'after'}
     )
     const newCode = userWithUpdatedCode.value!.EmailConfirmation.confirmationCode
-    if(!user) return res.sendStatus(404)
+    if(!user) return res.sendStatus(400)
     else if(user.EmailConfirmation.isConfirmed) return res.sendStatus(400)
     const message = `<h1>Thank for your registration</h1>
     <p>To finish registration please follow the link below:
