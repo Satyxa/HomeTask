@@ -17,6 +17,8 @@ emailRouter.post('/registration-confirmation', async (req: Request, res: Respons
         if(checkConfirmationStatus!.EmailConfirmation.isConfirmed) {
             return res.status(400).send({errorsMessages: [{message: 'code invalid', field: "code"}]})
         }
+        const userCheck = await patreonUsers.findOne({"EmailConfirmation.confirmationCode": code})
+        if(!userCheck) return res.status(400).send({ errorsMessages: [{ message: 'invalid code 3', field: "code" }] })
         const result = await patreonUsers.updateOne({"EmailConfirmation.confirmationCode": code}, {
             $set: {"EmailConfirmation.isConfirmed": true}})
         if (result.matchedCount === 1) return res.sendStatus(204)
