@@ -17,7 +17,10 @@ registrationRouter.post('/registration', ...usersValidation, checkValidation,  a
     const newUser: UserAccountDBType = await createUser(login, email, password)
     await patreonUsers.insertOne({...newUser})
     console.log('before email send')
-    await emailAdapter.sendEmail(newUser.AccountData.email, 'Confirm your email', newUser.EmailConfirmation.confirmationCode, res)
+    await emailAdapter.sendEmail(newUser.AccountData.email, 'Confirm your email', `<h1>Thank for your registration</h1>
+    <p>To finish registration please follow the link below:
+        <a href='https://home-task-f6h9.vercel.app/registration-confirmation?code=${newUser.EmailConfirmation.confirmationCode}'>complete registration</a>
+    </p>`, res)
 
     return res.status(204)
 })

@@ -8,7 +8,7 @@ export const emailRouter = Router({})
 
 emailRouter.post('/registration-confirmation', async (req: Request, res: Response) => {
     try {
-        const code: string = req.body.code
+        const code = req.query.code
         if(!code) return res.sendStatus(400)
         const result = await patreonUsers.updateOne({"EmailConfirmation.confirmationCode": code}, {$set: {
                 "EmailConfirmation.isConfirmed": true

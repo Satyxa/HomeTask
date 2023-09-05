@@ -32,6 +32,11 @@ app.delete('/testing/all-data', async(req: Request, res: Response) => {
   await patreonComments.deleteMany({})
   return res.sendStatus(204)
 })
+
+app.delete('/testing/delete-users', async(req: Request, res: Response) => {
+  await patreonUsers.deleteMany({})
+  return res.sendStatus(204)
+})
 const startApp = async () => {
   await runDB()
   app.listen(port, () => console.log( 'server 5200 ok'))
