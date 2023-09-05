@@ -22,11 +22,11 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
     const {loginOrEmail, password} = req.body
     if(!loginOrEmail || !password )return res.sendStatus(400)
 
-    const filter = {$or: [{email: loginOrEmail}, {login: loginOrEmail}]}
+    const filter = {$or: [{'AccountData.email': loginOrEmail}, {'AccountData.username': loginOrEmail}]}
     const foundUser = await patreonUsers.findOne(filter)
     if(!foundUser) return res.sendStatus(401)
 
-    const isValidPassword = await bcrypt.compare(password, foundUser.passwordHash)
+    const isValidPassword = await bcrypt.compare(password, foundUser.AccountData.passwordHash)
     if(isValidPassword) {
         const token = await createToken(foundUser.id)
         return res.status(200).send({accessToken: token})
