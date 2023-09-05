@@ -18,6 +18,11 @@ emailRouter.post('/registration-confirmation', async (req: Request, res: Respons
             return res.status(400).send({errorsMessages: [{message: 'code invalid', field: "code"}]})
         }
         const userCheck = await patreonUsers.findOne({"EmailConfirmation.confirmationCode": code})
+        if(userCheck?.EmailConfirmation.confirmationCode !== code) {
+            console.log(code, userCheck?.EmailConfirmation.confirmationCode)
+            return res.status(400).send({ errorsMessages: [{ message: 'invalid code 4', field: "code" }] })
+        }
+        console.log(userCheck)
         if(!userCheck) return res.status(400).send({ errorsMessages: [{ message: 'invalid code 3', field: "code" }] })
         const result = await patreonUsers.updateOne({"EmailConfirmation.confirmationCode": code}, {
             $set: {"EmailConfirmation.isConfirmed": true}})
