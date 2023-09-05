@@ -11,7 +11,7 @@ export const emailRouter = Router({})
 
 emailRouter.post('/registration-confirmation', async (req: Request, res: Response) => {
     try {
-        const code = req.query.code || req.body.code
+        const code = req.body.code
         if(!code) return res.sendStatus(400)
         const checkConfirmationStatus = await patreonUsers.findOne({"EmailConfirmation.confirmationCode": code})
         if(checkConfirmationStatus!.EmailConfirmation.isConfirmed){
