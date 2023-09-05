@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from "express";
 import {errorField} from "./types";
-import {patreonBlogs} from "./db/db";
+import {patreonBlogs, patreonUsers} from "./db/db";
 import {body, Result, ValidationError, validationResult} from "express-validator";
 import exp from "constants";
 
@@ -61,9 +61,20 @@ export const blogsCreateValidation = [
 ]
 
 export const registerValidation = [
-    body('password', 'incorrect password').isString().isLength({min: 6, max: 20}),
-    body('email', 'incorrect email').optional().isString().isLength({min: 6, max: 20}).isEmail(),
-    body('login', 'incorrect login').optional().isString().isLength({min: 3, max: 10})
+    body('password', 'incorrect password').exists().isString().isLength({min: 6, max: 20}),
+    body('email', 'incorrect email').exists().isString().isLength({min: 6, max: 20}).isEmail().custom(async (val) => {
+        const result = await patreonUsers.findOne({'AccountData.email': val})
+        console.log(result)
+        if(result){
+            throw new Error('email already exist')
+        } else return true
+        }),
+    body('login', 'incorrect login').exists().isString().isLength({min: 3, max: 10}).custom(async (val) => {
+        const result = await patreonUsers.findOne({'AccountData.username': val})
+        if(result){
+            throw new Error('login already exist')
+        } else return true
+    })
 ]
 
 export const usersValidation = [
