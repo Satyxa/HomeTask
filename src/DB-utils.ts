@@ -61,7 +61,7 @@ export const DB_Utils = {
             createdAt: new Date().toISOString(),
             commentatorInfo: {
                 userId: user.id,
-                userLogin: user.login
+                userLogin: user.AccountData.username
             }
         }
         const viewComment = {
