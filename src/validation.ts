@@ -63,13 +63,10 @@ export const blogsCreateValidation = [
 export const emailResending = [
     body('email', 'incorrect email').exists().isString().isLength({min: 6}).isEmail().custom(async (val) => {
         const result = await patreonUsers.findOne({'AccountData.email': val})
+        if(!result)throw new Error('email not exist')
         const confirmedStatus = result!.EmailConfirmation.isConfirmed
-        console.log(result)
-        if(!result){
-            throw new Error('email not exist')
-        } else if(confirmedStatus){
-            throw new Error('code already OK')
-        } else return true
+        if(confirmedStatus) throw new Error('email already confirmed')
+        else return true
     }),
 ]
 
