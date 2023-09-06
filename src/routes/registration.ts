@@ -4,7 +4,6 @@ import {UserAccountDBType, userT} from "../types";
 import {createUser} from "../autentification";
 import {patreonUsers} from "../db/db";
 import {emailAdapter} from "../email-adapter";
-import {Filter} from "mongodb";
 
 export const registrationRouter = Router({})
 
