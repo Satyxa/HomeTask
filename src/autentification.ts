@@ -1,10 +1,8 @@
-import {UserAccountDBType, userT} from "./types";
+import {UserAccountDBType} from "./types";
 import bcrypt from 'bcrypt'
 import * as uuid from 'uuid'
 import jwt from 'jsonwebtoken'
 import add from 'date-fns/add'
-import {patreonUsers} from "./db/db";
-import {Filter} from "mongodb";
 const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 
 const generatedHash = async (password: string, salt: string) => await bcrypt.hash(password, salt)
@@ -38,7 +36,7 @@ export const createToken = async (id: string, exp) => {
 export const getUserIdByToken = (token: string) => {
     try {
         const result:any = jwt.verify(token, secretKey)
-        return result.userId
+        return {userId: result.userId, exp: result.exp}
     } catch (err){
         console.log(err)
         return null

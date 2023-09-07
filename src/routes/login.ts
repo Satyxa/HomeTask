@@ -1,19 +1,22 @@
 import {Router, Request, Response} from "express";
-import {patreonIvalidTokens, patreonUsers} from "../db/db";
+import {patreonUsers} from "../db/db";
 import bcrypt from "bcrypt";
 import {createToken, getUserIdByToken} from "../autentification";
-import * as uuid from 'uuid'
 export const loginRouter = Router({});
 
 loginRouter.get('/me', async (req: Request, res: Response) => {
+    const headAuth = req.headers.authorization
     if(!req.headers.authorization)return res.sendStatus(401)
-
-    const token = req.headers.authorization.split(' ')[1]
-    const userId = getUserIdByToken(token)
-
+    const token = req.headers.authorization!.split(' ')[1]
+    const {userId, exp} = getUserIdByToken(token)
+    if(exp < new Date().getTime() / 1000) return res.sendStatus(401)
     const foundUser = await patreonUsers.findOne({id:userId})
-    if(!foundUser) return res.sendStatus(404)
+    if(!foundUser) {
+        console.log(4)
+        return res.sendStatus(404)
+    }
     else {
+        console.log(5)
         const {email, login} = foundUser
         req.userId = foundUser.id
         return res.status(200).send({email, login, userId})
