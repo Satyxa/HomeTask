@@ -8,6 +8,7 @@ import {loginRouter} from "./routes/login";
 import {commentsRouter} from "./routes/comments";
 import {registrationRouter} from "./routes/registration";
 import {emailRouter} from "./routes/email";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const port = process.env.PORT || 5200
@@ -15,6 +16,7 @@ app.get('/', (req: Request, res: Response) => res.send('privet'))
 
 
 app.use(express.json());
+app.use(cookieParser())
 app.use('/videos', videosRouter)
 app.use('/blogs', blogsRouter)
 app.use('/posts', postsRouter)

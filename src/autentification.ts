@@ -31,8 +31,8 @@ export const createUser = async (login: string, email: string, password: string)
 
 
 
-export const createToken = async (id: string) => {
-    return jwt.sign({userId: id}, secretKey, {expiresIn: '1h'})
+export const createToken = async (id: string, exp) => {
+    return jwt.sign({userId: id}, secretKey, {expiresIn: exp})
 }
 
 export const getUserIdByToken = (token: string) => {
