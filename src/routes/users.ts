@@ -10,7 +10,7 @@ export const usersRouter = Router({})
 
 usersRouter.get('/',async (req: Request, res: Response) => {
   const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm, sortDirection} = await paginationSort(req)
-  const filter: Filter<userT> = {$or: [{login: {$regex: searchLoginTerm ?? '', $options: 'i'}}, {email: {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
+  const filter: Filter<userT> = {$or: [{'AccountData.username': {$regex: searchLoginTerm ?? '', $options: 'i'}}, {'AccountData.email': {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
   const totalCount = await patreonUsers.countDocuments(filter)
   const pagesCount = Math.ceil(totalCount / pageSize)
 
@@ -39,7 +39,7 @@ usersRouter.post('/', checkAuth, ...usersValidation,checkValidation,  async(req:
 usersRouter.delete('/:id',checkAuth, async(req: Request, res: Response) => {
   const id = req.params.id
   const result = await patreonUsers.deleteOne({id})
-  if(result.deletedCount === 1){ return res.sendStatus(204)}
-  else {return res.sendStatus(404)}
+  if(result.deletedCount === 1) return res.sendStatus(204)
+  else return res.sendStatus(404)
 })
 
