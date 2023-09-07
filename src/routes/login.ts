@@ -34,7 +34,7 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
     if(isValidPassword) {
         const token = await createToken(foundUser.id, '10s')
         const RefreshToken = await createToken(foundUser.id, '20s')
-        res.cookie('RefreshToken', RefreshToken, {httpOnly: true,secure: true})
+        res.cookie('refresh', RefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: token})
     } else return res.sendStatus(401)
 
@@ -43,6 +43,6 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     const AccessToken = await createToken(req.userId!, '10s')
     const newRefreshToken = await createToken(req.userId!, '20s')
-    res.cookie('RefreshToken', newRefreshToken, {httpOnly: true,secure: true})
+    res.cookie('refresh', newRefreshToken, {httpOnly: true,secure: true})
     return res.status(200).send({AccessToken})
 })
