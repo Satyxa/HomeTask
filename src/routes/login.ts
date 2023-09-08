@@ -42,8 +42,17 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 
 loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     const {refreshToken} = req.cookies
-    const {exp} = jwt.verify(refreshToken, secretKey)
-    if(exp * 1000 < new Date()){
+    const testFunc = (refreshToken) => {
+        try {
+            const result: any = jwt.verify(refreshToken, secretKey)
+            return result.exp
+        } catch (err){
+            return null
+        }
+    }
+    const exp = testFunc(refreshToken)
+
+    if(!exp || exp * 1000 < new Date()){
         console.log('expired')
         return res.sendStatus(401)
     }
