@@ -17,7 +17,8 @@ loginRouter.get('/me', async (req: Request, res: Response) => {
         return res.sendStatus(404)
     }
     else {
-        const {email, login} = foundUser
+        const {email, login} = foundUser.AccountData
+        console.log(foundUser)
         req.userId = foundUser.id
         return res.status(200).send({email, login, userId})
     }
