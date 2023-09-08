@@ -42,10 +42,14 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     const {refreshToken} = req.cookies
     // const {userId} = jwt.verify(refreshToken, secretKey)
+    const user = await patreonUsers.findOne({'AccountData.userId': req.userId})
+    if (!user)return res.sendStatus(401)
+    if(user!.tokenBlackList.includes(refreshToken))return res.sendStatus(401)
     const result = await patreonUsers.updateOne({'AccountData.userId': req.userId}, {$push: {
             tokenBlackList: refreshToken
         }})
     if(result.matchedCount === 0)return res.sendStatus(401)
+
 
     const AccessToken = await createToken(req.userId!, '10s')
     const newRefreshToken = await createToken(req.userId!, '20s')
