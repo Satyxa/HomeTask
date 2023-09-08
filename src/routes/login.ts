@@ -68,7 +68,7 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     const AccessToken = await createToken(req.userId!, '10s')
     const newRefreshToken = await createToken(req.userId!, '20s')
     res.cookie('refreshToken', newRefreshToken, {httpOnly: true,secure: true})
-    return res.status(200).send({AccessToken})
+    return res.status(200).send({accessToken: AccessToken})
 })
 
 loginRouter.post('/logout', async (req:Request, res: Response) => {
