@@ -3,6 +3,7 @@ import {patreonUsers} from "../db/db";
 import bcrypt from "bcrypt";
 import {createToken, getUserIdByToken} from "../autentification";
 import jwt from "jsonwebtoken";
+import {log} from "util";
 export const loginRouter = Router({});
 const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 loginRouter.get('/me', async (req: Request, res: Response) => {
@@ -41,7 +42,11 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 
 loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     const {refreshToken} = req.cookies
-    // const {userId} = jwt.verify(refreshToken, secretKey)
+    const {exp} = jwt.verify(refreshToken, secretKey)
+    if(exp * 1000 < new Date()){
+        console.log('expired')
+        return res.sendStatus(401)
+    }
     const user = await patreonUsers.findOne({'AccountData.userId': req.userId})
     if (!user)return res.sendStatus(401)
     if(user!.tokenBlackList.includes(refreshToken))return res.sendStatus(401)
@@ -60,14 +65,29 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
 loginRouter.post('/logout', async (req:Request, res: Response) => {
     try {
         const {refreshToken} = req.cookies
+        console.log(1)
+        console.log(req.cookies)
         if (!refreshToken) return res.sendStatus(401)
-        const {userId} = jwt.verify(refreshToken, secretKey)
+        console.log(2)
+        const testFunc = (refreshToken) => {
+            try {
+                const result: any = jwt.verify(refreshToken, secretKey)
+                return result.userId
+            } catch (err){
+                return null
+            }
+        }
+        const userId = testFunc(refreshToken)
+        console.log(3)
         if(!userId)return res.sendStatus(401)
+        console.log(4)
         const user = await patreonUsers.findOne({'AccountData.userId': req.userId})
+        console.log(5)
         if(user?.tokenBlackList.includes(refreshToken)) return res.sendStatus(401)
         const result = await patreonUsers.updateOne({'AccountData.userId': req.userId}, {$push: {
                 tokenBlackList: refreshToken
             }})
+        console.log(6)
         if(result.matchedCount === 0)return res.sendStatus(401)
         else return res.sendStatus(204)
     } catch (err){
