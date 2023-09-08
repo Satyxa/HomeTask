@@ -32,8 +32,8 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 
     const isValidPassword = await bcrypt.compare(password, foundUser.AccountData.passwordHash)
     if(isValidPassword) {
-        const token = await createToken(foundUser.id, '20s')
-        const RefreshToken = await createToken(foundUser.id, '30s')
+        const token = await createToken(foundUser.id, '10s')
+        const RefreshToken = await createToken(foundUser.id, '20s')
         res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: token})
     } else return res.sendStatus(401)
@@ -73,8 +73,8 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     if(result.matchedCount === 0)return res.sendStatus(401)
 
     console.log(4)
-    const AccessToken = await createToken(resultToken.userId!, '20s')
-    const newRefreshToken = await createToken(resultToken.userId!, '30s')
+    const AccessToken = await createToken(resultToken.userId!, '10s')
+    const newRefreshToken = await createToken(resultToken.userId!, '20s')
     res.cookie('refreshToken', newRefreshToken, {httpOnly: true,secure: true})
     return res.status(200).send({accessToken: AccessToken})
 })
