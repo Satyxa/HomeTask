@@ -51,7 +51,7 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     }
     const resultToken: any = testFunc(refreshToken)
     console.log(1)
-    if(!resultToken.exp || new Date(resultToken.exp * 1000) < new Date()){
+    if(!resultToken || !resultToken.exp || new Date(resultToken.exp * 1000) < new Date()){
         console.log('expired')
         return res.sendStatus(401)
     }
