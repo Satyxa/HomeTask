@@ -36,7 +36,7 @@ export const createToken = async (id: string, exp) => {
 export const getUserIdByToken = (token: string) => {
     try {
         const result:any = jwt.verify(token, secretKey)
-        return {userId: result.userId, exp: result.exp}
+        return result.userId
     } catch (err){
         console.log(err)
         return null
