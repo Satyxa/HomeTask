@@ -25,10 +25,13 @@ export type EmailConfirmationType = {
     isConfirmed: boolean
 }
 
+
+
 export type UserAccountDBType = {
     id: string
     AccountData: AccountDataType
     EmailConfirmation: EmailConfirmationType
+    tokenBlackList: string[]
 }
 
 export type userLoginT = {

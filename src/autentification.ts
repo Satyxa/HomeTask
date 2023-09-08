@@ -23,7 +23,9 @@ export const createUser = async (login: string, email: string, password: string)
             confirmationCode: uuid.v4(),
             expirationDate: add(new Date(), {hours: 1, minutes: 3}).toISOString(),
             isConfirmed: false
-        }
+        },
+        tokenBlackList: []
+
     }
 }
 
