@@ -11,14 +11,15 @@ loginRouter.get('/me', async (req: Request, res: Response) => {
     if(!headAuth)return res.sendStatus(401)
     const token = headAuth!.split(' ')[1]
     const userId = getUserIdByToken(token)
+    console.log(userId)
     if(!userId) return res.sendStatus(401)
     const foundUser = await patreonUsers.findOne({id:userId})
     if(!foundUser) return res.sendStatus(404)
 
     else {
-        const {email, login} = foundUser.AccountData
+        const {email, username} = foundUser.AccountData
         req.userId = foundUser.id
-        return res.status(200).send({email, login, userId})
+        return res.status(200).send({email, login: username, userId})
     }
 })
 loginRouter.post('/login', async (req: Request, res: Response) => {
@@ -31,8 +32,8 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 
     const isValidPassword = await bcrypt.compare(password, foundUser.AccountData.passwordHash)
     if(isValidPassword) {
-        const token = await createToken(foundUser.id, '10s')
-        const RefreshToken = await createToken(foundUser.id, '20s')
+        const token = await createToken(foundUser.id, '20s')
+        const RefreshToken = await createToken(foundUser.id, '30s')
         res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: token})
     } else return res.sendStatus(401)
@@ -72,8 +73,8 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     if(result.matchedCount === 0)return res.sendStatus(401)
 
     console.log(4)
-    const AccessToken = await createToken(req.userId!, '10s')
-    const newRefreshToken = await createToken(req.userId!, '20s')
+    const AccessToken = await createToken(resultToken.userId!, '20s')
+    const newRefreshToken = await createToken(resultToken.userId!, '30s')
     res.cookie('refreshToken', newRefreshToken, {httpOnly: true,secure: true})
     return res.status(200).send({accessToken: AccessToken})
 })
