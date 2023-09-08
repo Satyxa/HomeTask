@@ -8,19 +8,15 @@ export const loginRouter = Router({});
 const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 loginRouter.get('/me', async (req: Request, res: Response) => {
     const headAuth = req.headers.authorization
-    if(!req.headers.authorization)return res.sendStatus(401)
-    const token = req.headers.authorization!.split(' ')[1]
+    if(!headAuth)return res.sendStatus(401)
+    const token = headAuth!.split(' ')[1]
     const userId = getUserIdByToken(token)
-    console.log(token)
-    console.log(4)
     if(!userId) return res.sendStatus(401)
-    console.log(5)
     const foundUser = await patreonUsers.findOne({id:userId})
     if(!foundUser) return res.sendStatus(404)
 
     else {
         const {email, login} = foundUser.AccountData
-        console.log(foundUser)
         req.userId = foundUser.id
         return res.status(200).send({email, login, userId})
     }
@@ -35,8 +31,8 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 
     const isValidPassword = await bcrypt.compare(password, foundUser.AccountData.passwordHash)
     if(isValidPassword) {
-        const token = await createToken(foundUser.id, '20s')
-        const RefreshToken = await createToken(foundUser.id, '30s')
+        const token = await createToken(foundUser.id, '10s')
+        const RefreshToken = await createToken(foundUser.id, '20s')
         res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: token})
     } else return res.sendStatus(401)
@@ -54,22 +50,30 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
         }
     }
     const resultToken: any = testFunc(refreshToken)
-
-    if(!resultToken.exp || resultToken.exp * 1000 < new Date()){
+    console.log(1)
+    if(!resultToken.exp || new Date(resultToken.exp * 1000) < new Date()){
         console.log('expired')
         return res.sendStatus(401)
     }
-    const user = await patreonUsers.findOne({'AccountData.userId': resultToken.userId})
+    console.log(2)
+    console.log(resultToken)
+    const user = await patreonUsers.findOne({'id': resultToken.userId})
+    const users = await patreonUsers.find({}).toArray()
+    console.log(users)
+    console.log(user)
     if (!user)return res.sendStatus(401)
+    console.log(5)
     if(user!.tokenBlackList.includes(refreshToken))return res.sendStatus(401)
-    const result = await patreonUsers.updateOne({'AccountData.userId': resultToken.userId}, {$push: {
+    console.log('fmwo')
+    const result = await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {
             tokenBlackList: refreshToken
         }})
+    console.log(3)
     if(result.matchedCount === 0)return res.sendStatus(401)
 
-
-    const AccessToken = await createToken(req.userId!, '20s')
-    const newRefreshToken = await createToken(req.userId!, '30s')
+    console.log(4)
+    const AccessToken = await createToken(req.userId!, '10s')
+    const newRefreshToken = await createToken(req.userId!, '20s')
     res.cookie('refreshToken', newRefreshToken, {httpOnly: true,secure: true})
     return res.status(200).send({accessToken: AccessToken})
 })
@@ -93,10 +97,10 @@ loginRouter.post('/logout', async (req:Request, res: Response) => {
         console.log(3)
         if(!userId)return res.sendStatus(401)
         console.log(4)
-        const user = await patreonUsers.findOne({'AccountData.userId':userId})
+        const user = await patreonUsers.findOne({'id':userId})
         console.log(5)
         if(user?.tokenBlackList.includes(refreshToken)) return res.sendStatus(401)
-        const result = await patreonUsers.updateOne({'AccountData.userId': userId}, {$push: {
+        const result = await patreonUsers.updateOne({'id': userId}, {$push: {
                 tokenBlackList: refreshToken
             }})
         console.log(6)
