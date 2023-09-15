@@ -40,7 +40,7 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
                     ip,
                     title: deviceName,
                     deviceId,
-                    lastActiveDate: iat
+                    lastActiveDate: iat.toString()
                 }}})
         res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: token})

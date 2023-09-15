@@ -18,7 +18,7 @@ export const AuthMiddleware = async (req: Request, res: Response, next: NextFunc
     const foundUser = await patreonUsers.findOne({id:userId})
     if(!foundUser) return res.sendStatus(404)
     const existDevice = foundUser.sessions.some(device => device.deviceId === deviceId)
-    const correctActiveDate = foundUser.sessions.some(date => date.lastActiveDate === iat)
+    const correctActiveDate = foundUser.sessions.some(date => date.lastActiveDate === iat.toString())
     if(existDevice || correctActiveDate){
         req.userId = foundUser.id
         next()
