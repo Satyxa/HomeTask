@@ -24,15 +24,16 @@ export const createUser = async (login: string, email: string, password: string)
             expirationDate: add(new Date(), {hours: 1, minutes: 3}).toISOString(),
             isConfirmed: false
         },
-        tokenBlackList: []
-
+        tokenBlackList: [],
+        sessions: []
     }
 }
 
 
 
-export const createToken = async (id: string, exp) => {
-    return jwt.sign({userId: id}, secretKey, {expiresIn: exp})
+export const createToken = async (id: string, deviceId, ip, exp) => {
+    return jwt.sign({userId: id, ip, deviceId}, secretKey, {expiresIn: exp})
+
 }
 
 export const getUserIdByToken = (token: string) => {

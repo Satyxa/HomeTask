@@ -32,6 +32,7 @@ export type UserAccountDBType = {
     AccountData: AccountDataType
     EmailConfirmation: EmailConfirmationType
     tokenBlackList: string[]
+    sessions: any[]
 }
 
 export type userLoginT = {

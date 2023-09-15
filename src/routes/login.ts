@@ -3,23 +3,38 @@ import {patreonUsers} from "../db/db";
 import bcrypt from "bcrypt";
 import {createToken, getUserIdByToken} from "../autentification";
 import jwt from "jsonwebtoken";
-import {log} from "util";
+import * as uuid from 'uuid'
 export const loginRouter = Router({});
 const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 loginRouter.get('/me', async (req: Request, res: Response) => {
     const headAuth = req.headers.authorization
+    console.log(headAuth)
     if(!headAuth)return res.sendStatus(401)
     const token = headAuth!.split(' ')[1]
-    const userId = getUserIdByToken(token)
-    console.log(userId)
+    console.log(token)
+    const testFunc = (token) => {
+        try {
+            console.log(1)
+            const result: any = jwt.verify(token, secretKey)
+            console.log(2)
+            console.log(result)
+            return result
+        } catch (err){
+            return null
+        }
+    }
+    const {userId, deviceId, iat} = testFunc(token)
     if(!userId) return res.sendStatus(401)
     const foundUser = await patreonUsers.findOne({id:userId})
     if(!foundUser) return res.sendStatus(404)
-
-    else {
+    const existDevice = foundUser.sessions.some(device => device.deviceId === deviceId)
+    const correctActiveDate = foundUser.sessions.some(date => date.lastActiveDate === iat)
+    if(existDevice || correctActiveDate){
         const {email, username} = foundUser.AccountData
         req.userId = foundUser.id
         return res.status(200).send({email, login: username, userId})
+    } else {
+        return res.sendStatus(401)
     }
 })
 loginRouter.post('/login', async (req: Request, res: Response) => {
@@ -32,8 +47,18 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 
     const isValidPassword = await bcrypt.compare(password, foundUser.AccountData.passwordHash)
     if(isValidPassword) {
-        const token = await createToken(foundUser.id, '10s')
-        const RefreshToken = await createToken(foundUser.id, '20s')
+        let deviceName = req.headers["user-agent"]
+        let ip = req.ip
+        const deviceId = uuid.v4()
+        const token = await createToken(foundUser.id, deviceId, ip,'10s')
+        const RefreshToken = await createToken(foundUser.id, deviceId,ip, '20s')
+        const {iat} = jwt.verify(token, secretKey)
+        await patreonUsers.updateOne(filter, {$push: {sessions: {
+                    ip,
+                    title: deviceName,
+                    deviceId,
+                    lastActiveDate: iat
+                }}})
         res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: token})
     } else return res.sendStatus(401)
@@ -51,30 +76,36 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
         }
     }
     const resultToken: any = testFunc(refreshToken)
-    console.log(1)
     if(!resultToken || !resultToken.exp || new Date(resultToken.exp * 1000) < new Date()){
         console.log('expired')
         return res.sendStatus(401)
     }
-    console.log(2)
-    console.log(resultToken)
     const user = await patreonUsers.findOne({'id': resultToken.userId})
-    const users = await patreonUsers.find({}).toArray()
-    console.log(users)
-    console.log(user)
     if (!user)return res.sendStatus(401)
-    console.log(5)
     if(user!.tokenBlackList.includes(refreshToken))return res.sendStatus(401)
-    console.log('fmwo')
     const result = await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {
             tokenBlackList: refreshToken
         }})
-    console.log(3)
     if(result.matchedCount === 0)return res.sendStatus(401)
-
-    console.log(4)
-    const AccessToken = await createToken(resultToken.userId!, '10s')
-    const newRefreshToken = await createToken(resultToken.userId!, '20s')
+    let deviceName = req.headers["user-agent"]
+    let ip = req.ip
+    const deviceId = uuid.v4()
+    const AccessToken = await createToken(resultToken.id, deviceId, ip,'10s')
+    const newRefreshToken = await createToken(resultToken.id, deviceId, ip,'20s')
+    const {iat} = jwt.verify(AccessToken, secretKey)
+    const device = {
+        ip,
+        title: deviceName,
+        deviceId,
+        lastActiveDate: iat
+    }
+    await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {sessions: {
+                ip,
+                title: deviceName,
+                deviceId,
+                lastActiveDate: iat
+            }}})
+    await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {sessions: deviceName}})
     res.cookie('refreshToken', newRefreshToken, {httpOnly: true,secure: true})
     return res.status(200).send({accessToken: AccessToken})
 })
@@ -82,10 +113,7 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
 loginRouter.post('/logout', async (req:Request, res: Response) => {
     try {
         const {refreshToken} = req.cookies
-        console.log(1)
-        console.log(req.cookies)
         if (!refreshToken) return res.sendStatus(401)
-        console.log(2)
         const testFunc = (refreshToken) => {
             try {
                 const result: any = jwt.verify(refreshToken, secretKey)
@@ -95,16 +123,12 @@ loginRouter.post('/logout', async (req:Request, res: Response) => {
             }
         }
         const userId = testFunc(refreshToken)
-        console.log(3)
         if(!userId)return res.sendStatus(401)
-        console.log(4)
         const user = await patreonUsers.findOne({'id':userId})
-        console.log(5)
         if(user?.tokenBlackList.includes(refreshToken)) return res.sendStatus(401)
         const result = await patreonUsers.updateOne({'id': userId}, {$push: {
                 tokenBlackList: refreshToken
             }})
-        console.log(6)
         if(result.matchedCount === 0)return res.sendStatus(401)
         else return res.sendStatus(204)
     } catch (err){
