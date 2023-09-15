@@ -9,6 +9,7 @@ import {commentsRouter} from "./routes/comments";
 import {registrationRouter} from "./routes/registration";
 import {emailRouter} from "./routes/email";
 import cookieParser from "cookie-parser";
+import {devicesRouter} from "./routes/devices";
 
 const app = express();
 const port = process.env.PORT || 5200
@@ -23,8 +24,9 @@ app.use('/posts', postsRouter)
 app.use('/users', usersRouter)
 app.use('/auth', loginRouter)
 app.use('/auth', registrationRouter)
-app.use('/comments', commentsRouter)
 app.use('/auth', emailRouter)
+app.use('/comments', commentsRouter)
+app.use('/security/devices', devicesRouter)
 
 app.delete('/testing/all-data', async(req: Request, res: Response) => {
   await patreonBlogs.deleteMany({})

@@ -1,12 +1,26 @@
 import {NextFunction, Request, Response} from "express";
 import {getUserIdByToken} from "./autentification";
-
+import jwt from "jsonwebtoken";
+import {patreonUsers} from "./db/db";
+const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 export const AuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.headers.authorization) return res.sendStatus(401)
-    const token = req.headers.authorization.split(' ')[1]
-    const userId = getUserIdByToken(token)
-
-    if (!userId) return res.sendStatus(401)
-    req.userId = userId
-    next()
+    const refreshToken = req.cookies.refreshToken
+    if (!refreshToken) return res.sendStatus(401)
+    const testFunc = (refreshToken) => {
+        try {
+            const result =  jwt.verify(refreshToken, secretKey)
+            return result
+        } catch (err){
+            return null
+        }
+    }
+    const {userId ,deviceId, iat} = testFunc(refreshToken)
+    const foundUser = await patreonUsers.findOne({id:userId})
+    if(!foundUser) return res.sendStatus(404)
+    const existDevice = foundUser.sessions.some(device => device.deviceId === deviceId)
+    const correctActiveDate = foundUser.sessions.some(date => date.lastActiveDate === iat)
+    if(existDevice || correctActiveDate){
+        req.userId = foundUser.id
+        next()
+    } else return res.sendStatus(403)
 }

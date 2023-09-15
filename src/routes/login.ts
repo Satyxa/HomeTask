@@ -8,33 +8,16 @@ export const loginRouter = Router({});
 const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 loginRouter.get('/me', async (req: Request, res: Response) => {
     const headAuth = req.headers.authorization
-    console.log(headAuth)
     if(!headAuth)return res.sendStatus(401)
     const token = headAuth!.split(' ')[1]
-    console.log(token)
-    const testFunc = (token) => {
-        try {
-            console.log(1)
-            const result: any = jwt.verify(token, secretKey)
-            console.log(2)
-            console.log(result)
-            return result
-        } catch (err){
-            return null
-        }
-    }
-    const {userId, deviceId, iat} = testFunc(token)
+    const userId = getUserIdByToken(token)
     if(!userId) return res.sendStatus(401)
     const foundUser = await patreonUsers.findOne({id:userId})
     if(!foundUser) return res.sendStatus(404)
-    const existDevice = foundUser.sessions.some(device => device.deviceId === deviceId)
-    const correctActiveDate = foundUser.sessions.some(date => date.lastActiveDate === iat)
-    if(existDevice || correctActiveDate){
+    else {
         const {email, username} = foundUser.AccountData
         req.userId = foundUser.id
         return res.status(200).send({email, login: username, userId})
-    } else {
-        return res.sendStatus(401)
     }
 })
 loginRouter.post('/login', async (req: Request, res: Response) => {
