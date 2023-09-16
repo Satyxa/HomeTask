@@ -1,7 +1,7 @@
 import {Router, Request, Response} from "express";
 import {patreonUsers} from "../db/db";
 import bcrypt from "bcrypt";
-import {createToken, getUserIdByToken} from "../autentification";
+import {createToken, getResultByToken, getUserIdByToken} from "../autentification";
 import jwt from "jsonwebtoken";
 import * as uuid from 'uuid'
 export const loginRouter = Router({});
@@ -40,7 +40,7 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
                     ip,
                     title: deviceName,
                     deviceId,
-                    lastActiveDate: iat.toString()
+                    lastActiveDate: iat.toISOString()
                 }}})
         res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: token})
@@ -50,15 +50,7 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 
 loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     const {refreshToken} = req.cookies
-    const testFunc = (refreshToken) => {
-        try {
-            const result: any = jwt.verify(refreshToken, secretKey)
-            return result
-        } catch (err){
-            return null
-        }
-    }
-    const resultToken: any = testFunc(refreshToken)
+    const resultToken: any = getResultByToken(refreshToken)
     if(!resultToken || !resultToken.exp || new Date(resultToken.exp * 1000) < new Date()){
         console.log('expired')
         return res.sendStatus(401)
@@ -76,17 +68,11 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     const AccessToken = await createToken(resultToken.id, deviceId, ip,'10s')
     const newRefreshToken = await createToken(resultToken.id, deviceId, ip,'20s')
     const {iat} = jwt.verify(AccessToken, secretKey)
-    const device = {
-        ip,
-        title: deviceName,
-        deviceId,
-        lastActiveDate: iat
-    }
     await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {sessions: {
                 ip,
                 title: deviceName,
                 deviceId,
-                lastActiveDate: iat
+                lastActiveDate: iat.toISOString()
             }}})
     await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {sessions: deviceName}})
     res.cookie('refreshToken', newRefreshToken, {httpOnly: true,secure: true})
@@ -97,15 +83,7 @@ loginRouter.post('/logout', async (req:Request, res: Response) => {
     try {
         const {refreshToken} = req.cookies
         if (!refreshToken) return res.sendStatus(401)
-        const testFunc = (refreshToken) => {
-            try {
-                const result: any = jwt.verify(refreshToken, secretKey)
-                return result.userId
-            } catch (err){
-                return null
-            }
-        }
-        const userId = testFunc(refreshToken)
+        const userId = getResultByToken(refreshToken)
         if(!userId)return res.sendStatus(401)
         const user = await patreonUsers.findOne({'id':userId})
         if(user?.tokenBlackList.includes(refreshToken)) return res.sendStatus(401)

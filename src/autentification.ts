@@ -46,3 +46,13 @@ export const getUserIdByToken = (token: string) => {
         return null
     }
 }
+
+export const getResultByToken = (refreshToken) => {
+    try {
+        const result =  jwt.verify(refreshToken, secretKey)
+        return result
+    } catch (err){
+        console.log(err)
+        return null
+    }
+}
