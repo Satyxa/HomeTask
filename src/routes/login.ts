@@ -40,7 +40,7 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
                     ip,
                     title: deviceName,
                     deviceId,
-                    lastActiveDate: iat.toString()
+                    lastActiveDate: new Date(iat * 1000).toISOString()
                 }}})
         console.log(iat.toString())
         res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
@@ -73,7 +73,7 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
                 ip,
                 title: deviceName,
                 deviceId,
-                lastActiveDate: iat.toISOString()
+                lastActiveDate: new Date(iat * 1000).toISOString()
             }}})
     await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {sessions: deviceName}})
     res.cookie('refreshToken', newRefreshToken, {httpOnly: true,secure: true})
