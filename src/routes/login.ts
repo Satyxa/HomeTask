@@ -33,15 +33,16 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
         let deviceName = req.headers["user-agent"]
         let ip = req.ip
         const deviceId = uuid.v4()
-        const token = await createToken(foundUser.id, deviceId, ip,'10s')
-        const RefreshToken = await createToken(foundUser.id, deviceId,ip, '20s')
+        const token = await createToken(foundUser.id, deviceId, ip,'50s')
+        const RefreshToken = await createToken(foundUser.id, deviceId,ip, '60s')
         const {iat} = jwt.verify(token, secretKey)
         await patreonUsers.updateOne(filter, {$push: {sessions: {
                     ip,
                     title: deviceName,
                     deviceId,
-                    lastActiveDate: iat.toISOString()
+                    lastActiveDate: iat.toString()
                 }}})
+        console.log(iat.toString())
         res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: token})
     } else return res.sendStatus(401)
@@ -65,8 +66,8 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     let deviceName = req.headers["user-agent"]
     let ip = req.ip
     const deviceId = uuid.v4()
-    const AccessToken = await createToken(resultToken.id, deviceId, ip,'10s')
-    const newRefreshToken = await createToken(resultToken.id, deviceId, ip,'20s')
+    const AccessToken = await createToken(resultToken.id, deviceId, ip,'50s')
+    const newRefreshToken = await createToken(resultToken.id, deviceId, ip,'60s')
     const {iat} = jwt.verify(AccessToken, secretKey)
     await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {sessions: {
                 ip,
