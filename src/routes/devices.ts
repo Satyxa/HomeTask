@@ -29,14 +29,9 @@ devicesRouter.delete('/', AuthMiddleware, async (req: Request, res: Response) =>
 
 devicesRouter.delete('/:deviceId', AuthMiddleware,async (req:Request, res:Response) => {
     const deviceIdParams = req.params.deviceId
-    console.log(1)
-    console.log(deviceIdParams)
+    if(!await patreonUsers.findOne({'sessions.deviceId': deviceIdParams})) return res.sendStatus(404)
     const result = await patreonUsers.updateOne({id: req.userId!},
         {$pull: {sessions: {deviceId: deviceIdParams}}})
-    console.log(result)
-    console.log(2)
-    console.log(3)
-
     if(result.matchedCount === 1) return res.sendStatus(204)
     else return res.sendStatus(404)
 })
