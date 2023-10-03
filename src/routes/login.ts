@@ -52,6 +52,7 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     const {refreshToken} = req.cookies
     const resultToken: any = getResultByToken(refreshToken)
+    console.log(11111)
     console.log(resultToken)
     if(!resultToken || !resultToken.exp || new Date(resultToken.exp * 1000) < new Date()){
         console.log('expired')
@@ -67,8 +68,8 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     let deviceName = req.headers["user-agent"]
     let ip = req.ip
     const deviceId = uuid.v4()
-    const AccessToken = await createToken(resultToken.id, resultToken.deviceId, resultToken.ip,'10s')
-    const newRefreshToken = await createToken(resultToken.id, resultToken.deviceId, resultToken.ip,'20s')
+    const AccessToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'10s')
+    const newRefreshToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'20s')
     const {iat} = jwt.verify(AccessToken, secretKey)
     await patreonUsers.updateOne({'id': resultToken.userId, 'sessions': resultToken.deviceId},
         {$set: {
