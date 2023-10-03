@@ -36,12 +36,14 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
         const token = await createToken(foundUser.id, deviceId, ip,'10s')
         const RefreshToken = await createToken(foundUser.id, deviceId,ip, '20s')
         const {iat} = jwt.verify(token, secretKey)
-        await patreonUsers.updateOne(filter, {$push: {sessions: {
-                    ip,
-                    title: deviceName,
-                    deviceId,
-                    lastActiveDate: new Date(iat * 1000).toISOString()
-                }}})
+        const newDevice = {
+            ip,
+            title: deviceName,
+            deviceId,
+            lastActiveDate: new Date(iat * 1000).toISOString()
+        }
+        console.log(newDevice)
+        await patreonUsers.updateOne(filter, {$push: {sessions: newDevice}})
         console.log(iat.toString())
         res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: token})
@@ -83,15 +85,11 @@ loginRouter.post('/logout', async (req:Request, res: Response) => {
     try {
         const {refreshToken} = req.cookies
         if (!refreshToken) return res.sendStatus(401)
+        console.log(refreshToken)
         const userId = getResultByToken(refreshToken)
         if(!userId)return res.sendStatus(401)
         const user = await patreonUsers.findOne({'id':userId})
-        if(user?.tokenBlackList.includes(refreshToken)) return res.sendStatus(401)
-        const result = await patreonUsers.updateOne({'id': userId}, {$push: {
-                tokenBlackList: refreshToken
-            }})
-        if(result.matchedCount === 0)return res.sendStatus(401)
-        else return res.sendStatus(204)
+        res.sendStatus(204)
     } catch (err){
         console.log(err)
         return res.sendStatus(401)
