@@ -5,6 +5,7 @@ import {patreonUsers} from "./db/db";
 const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 export const AuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const refreshToken = req.cookies.refreshToken
+    console.log(1)
     if (!refreshToken) return res.sendStatus(401)
     const testFunc = (refreshToken) => {
         try {
@@ -15,6 +16,7 @@ export const AuthMiddleware = async (req: Request, res: Response, next: NextFunc
         }
     }
     const {userId ,deviceId, iat} = testFunc(refreshToken)
+    console.log(userId)
     const foundUser = await patreonUsers.findOne({id:userId})
     if(!foundUser) return res.sendStatus(404)
     const existDevice = foundUser.sessions.some(device => device.deviceId === deviceId)
