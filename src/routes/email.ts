@@ -7,9 +7,10 @@ import * as uuid from 'uuid'
 import {UserAccountDBType} from "../types";
 import {ModifyResult, UpdateResult} from "mongodb";
 import {checkValidation, emailResending} from "../validation";
+import {rateLimiter} from "../rateLimit";
 export const emailRouter = Router({})
 
-emailRouter.post('/registration-confirmation', async (req: Request, res: Response) => {
+emailRouter.post('/registration-confirmation',rateLimiter, async (req: Request, res: Response) => {
     try {
         const code = req.body.code
         if(!code) return res.sendStatus(400)
@@ -30,7 +31,7 @@ emailRouter.post('/', async (req: Request, res: Response) => {
     await emailAdapter.sendEmail(email, subject, message, res)
 })
 
-registrationRouter.post('/registration-email-resending', ...emailResending, checkValidation, async (req: Request, res: Response) => {
+registrationRouter.post('/registration-email-resending',rateLimiter, ...emailResending, checkValidation, async (req: Request, res: Response) => {
     const email: string = req.body.email
     if (!email) return res.sendStatus(400)
     const user = await patreonUsers.findOne({'AccountData.email': email})

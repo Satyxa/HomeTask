@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import {createToken, getResultByToken, getUserIdByToken} from "../autentification";
 import jwt from "jsonwebtoken";
 import * as uuid from 'uuid'
+import {rateLimiter} from "../rateLimit";
 export const loginRouter = Router({});
 const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 loginRouter.get('/me', async (req: Request, res: Response) => {
@@ -20,7 +21,7 @@ loginRouter.get('/me', async (req: Request, res: Response) => {
         return res.status(200).send({email, login: username, userId})
     }
 })
-loginRouter.post('/login', async (req: Request, res: Response) => {
+loginRouter.post('/login', rateLimiter, async (req: Request, res: Response) => {
     const {loginOrEmail, password} = req.body
     if(!loginOrEmail || !password )return res.sendStatus(400)
     const filter = {$or: [{'AccountData.email': loginOrEmail}, {'AccountData.username': loginOrEmail}]}
