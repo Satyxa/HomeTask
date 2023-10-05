@@ -12,19 +12,26 @@ devicesRouter.get('/', AuthMiddleware, async (req: Request, res: Response) => {
 })
 
 devicesRouter.delete('/', AuthMiddleware, async (req: Request, res: Response) => {
-    const refreshToken = req.cookies.refreshToken
-    const testFunc = (refreshToken) => {
-        try {
-            const result =  jwt.verify(refreshToken, secretKey)
-            return result
-        } catch (err){
-            return null
+    try {
+        const refreshToken = req.cookies.refreshToken
+        const testFunc = (refreshToken) => {
+            try {
+                const result =  jwt.verify(refreshToken, secretKey)
+                return result
+            } catch (err){
+                return null
+            }
         }
+        const {deviceId} = testFunc(refreshToken)
+        console.log(9999999999)
+        const result = await patreonUsers.updateOne({id: req.userId},{$pull: {sessions: {deviceId: {$ne: deviceId}}}})
+        console.log(4444444444444444444)
+        if(result.matchedCount >= 1) res.sendStatus(204)
+        else return res.sendStatus(400)
+    } catch (err){
+        console.log(err, `=> delete all except current`)
+        return res.sendStatus(500)
     }
-    const {deviceId} = testFunc(refreshToken)
-    const result = await patreonUsers.updateOne({id: req.userId},{sessions: {$ne: {'sessions.deviceId': deviceId}}})
-    if(result.matchedCount >= 1) res.sendStatus(204)
-    else return res.sendStatus(400)
 })
 
 devicesRouter.delete('/:deviceId', AuthMiddleware,async (req:Request, res:Response) => {

@@ -659,6 +659,11 @@ etag@~1.8.1:
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
   integrity sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==
 
+express-rate-limit@^7.1.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/express-rate-limit/-/express-rate-limit-7.1.0.tgz#0942f76e78a5089fd3e24ef0a1a81c7e4ad2a92b"
+  integrity sha512-pwKOMedrpJJeINON/9jhAa18udV2qwxPZSoklPZK8pmXxUyE5uXaptiwjGw8bZILbxqfUZ/p8pQA99ODjSgA5Q==
+
 express-validator@*, express-validator@^7.0.1:
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/express-validator/-/express-validator-7.0.1.tgz#435fac6b5fa838763f78eca05d2206317b92106e"

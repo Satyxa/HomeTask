@@ -4,10 +4,12 @@ import {UserAccountDBType, userT} from "../types";
 import {createUser} from "../autentification";
 import {patreonUsers} from "../db/db";
 import {emailAdapter} from "../email-adapter";
+import {rateLimit} from "express-rate-limit";
+import {rateLimiter} from "../rateLimit";
 
 export const registrationRouter = Router({})
 
-registrationRouter.post('/registration', ...registerValidation, checkValidation,  async(req: Request, res: Response) => {
+registrationRouter.post('/registration', rateLimiter, ...registerValidation, checkValidation,  async(req: Request, res: Response) => {
     const {email, login, password} = req.body
     if(!email || !login || !password) return res.sendStatus(401)
     const newUser: UserAccountDBType = await createUser(login, email, password)

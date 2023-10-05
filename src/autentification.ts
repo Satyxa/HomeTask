@@ -52,7 +52,7 @@ export const getResultByToken = (refreshToken) => {
         const result =  jwt.verify(refreshToken, secretKey)
         return result
     } catch (err){
-        console.log(err)
+        console.warn(err)
         return null
     }
 }

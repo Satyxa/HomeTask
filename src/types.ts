@@ -57,6 +57,11 @@ export type pagSortT = {
 }
 
 
+export type RateLimiterT = {
+    ip: string
+    date: Date
+    url: string
+}
 
 export type postT = {
     id: string

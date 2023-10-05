@@ -23,7 +23,6 @@ loginRouter.get('/me', async (req: Request, res: Response) => {
 loginRouter.post('/login', async (req: Request, res: Response) => {
     const {loginOrEmail, password} = req.body
     if(!loginOrEmail || !password )return res.sendStatus(400)
-
     const filter = {$or: [{'AccountData.email': loginOrEmail}, {'AccountData.username': loginOrEmail}]}
     const foundUser = await patreonUsers.findOne(filter)
     if(!foundUser) return res.sendStatus(401)
@@ -36,15 +35,14 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
         const token = await createToken(foundUser.id, deviceId, ip,'10s')
         const RefreshToken = await createToken(foundUser.id, deviceId,ip, '20s')
         const {iat} = jwt.verify(token, secretKey)
+
         const newDevice = {
             ip,
             title: deviceName,
             deviceId,
             lastActiveDate: new Date(iat * 1000).toISOString()
         }
-        console.log(newDevice)
         await patreonUsers.updateOne(filter, {$push: {sessions: newDevice}})
-        console.log(iat.toString())
         res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: token})
     } else return res.sendStatus(401)
@@ -54,29 +52,22 @@ loginRouter.post('/login', async (req: Request, res: Response) => {
 loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
     const {refreshToken} = req.cookies
     const resultToken: any = getResultByToken(refreshToken)
-    console.log(11111)
-    console.log(resultToken)
     if(!resultToken || !resultToken.exp || new Date(resultToken.exp * 1000) < new Date()){
-        console.log('expired')
         return res.sendStatus(401)
     }
     const user = await patreonUsers.findOne({'id': resultToken.userId})
     if (!user)return res.sendStatus(401)
-    if(user!.tokenBlackList.includes(refreshToken))return res.sendStatus(401)
-    const result = await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {
-            tokenBlackList: refreshToken
-        }})
-    if(result.matchedCount === 0)return res.sendStatus(401)
-    let deviceName = req.headers["user-agent"]
-    let ip = req.ip
-    const deviceId = uuid.v4()
     const AccessToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'10s')
     const newRefreshToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'20s')
-    const {iat} = jwt.verify(AccessToken, secretKey)
-    await patreonUsers.updateOne({'id': resultToken.userId, 'sessions': resultToken.deviceId},
-        {$set: {
-                lastActiveDate: new Date(iat * 1000).toISOString()}})
-    await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {sessions: deviceName}})
+    const {iat} = jwt.verify(newRefreshToken, secretKey)
+    const sessions = [...user.sessions]
+    const sessionForUpdate = sessions.find(s => s.deviceId === resultToken.deviceId)
+    sessionForUpdate.lastActiveDate =  new Date(iat * 1000).toISOString()
+    await patreonUsers.updateOne({'id': resultToken.userId}, {$set: {sessions}})
+    // await patreonUsers.updateOne({'id': resultToken.userId, 'sessions': resultToken.deviceId},
+    //     {$set: {
+    //              lastActiveDate: new Date(iat * 1000).toISOString()}})
+    // await patreonUsers.updateOne({'id': resultToken.userId}, {$push: {sessions: deviceName}})
     res.cookie('refreshToken', newRefreshToken, {httpOnly: true,secure: true})
     return res.status(200).send({accessToken: AccessToken})
 })
@@ -84,12 +75,19 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
 loginRouter.post('/logout', async (req:Request, res: Response) => {
     try {
         const {refreshToken} = req.cookies
+        console.log('rt', refreshToken)
         if (!refreshToken) return res.sendStatus(401)
-        console.log(refreshToken)
-        const userId = getResultByToken(refreshToken)
+        console.log('!getResultByToken(refreshToken)', !getResultByToken(refreshToken))
+        if(!getResultByToken(refreshToken))  return res.sendStatus(401)
+        const {userId, deviceId} = getResultByToken(refreshToken)
+        console.log('!userId', !userId)
         if(!userId)return res.sendStatus(401)
-        const user = await patreonUsers.findOne({'id':userId})
-        res.sendStatus(204)
+        const result = await patreonUsers.updateOne({id: userId},
+            {$pull: {sessions: {deviceId}}})
+        console.log('res', result)
+        if(result.matchedCount === 1) return res.sendStatus(204)
+
+        else return res.sendStatus(401)
     } catch (err){
         console.log(err)
         return res.sendStatus(401)
