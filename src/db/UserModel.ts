@@ -20,7 +20,8 @@ export const UserSchema = new mongoose.Schema<WithId<UserAccountDBType>>({
         title: String,
         deviceId: String,
         lastActiveDate: String,
-    }
+    },
+    recoveryCode: String | null
 })
 
 export const UserModel = mongoose.model('users', UserSchema)

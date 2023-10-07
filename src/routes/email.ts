@@ -5,8 +5,11 @@ import {registrationRouter} from "./registration";
 import * as uuid from 'uuid'
 import {UserAccountDBType} from "../types";
 import {ModifyResult} from "mongodb";
-import {checkValidation, emailResending} from "../validation";
+import {checkValidation, emailResending, isEmailCorrect, isNewPasswordCorrect} from "../validation";
 import {rateLimiter} from "../rateLimit";
+import {UserModel} from "../db/UserModel";
+import bcrypt from "bcrypt";
+import {generatedHash} from "../authentication";
 export const emailRouter = Router({})
 
 emailRouter.post('/registration-confirmation',rateLimiter, async (req: Request, res: Response) => {
@@ -59,3 +62,40 @@ registrationRouter.post('/registration-email-resending',rateLimiter, ...emailRes
         return null
     }
 })
+
+emailRouter.post('/password-recovery', rateLimiter, ...isEmailCorrect, checkValidation, async (req:Request, res: Response) => {
+    try {
+        const {email} = req.body
+        const user = await patreonUsers.findOne({'AccountData.email': email})
+        if(!user) return res.sendStatus(204)
+        else {
+            const recoveryCode = uuid.v4()
+            user.recoveryCode = recoveryCode
+            const subject = 'Password Recovery'
+            const message = `<h1>Password recovery</h1>
+       <p>To finish password recovery please follow the link below:
+          <a href='https://somesite.com/password-recovery?recoveryCode=${recoveryCode}'>recovery password</a>
+      </p>`
+            await emailAdapter.sendEmail(email, subject, message, res)
+        }
+    } catch (err) {
+        console.log(err, `=> post "/password-recovery" emailRouter`)
+        return null
+    }
+})
+
+emailRouter.post('/new-password', rateLimiter, ...isNewPasswordCorrect, checkValidation, async (req:Request, res: Response) => {
+    try {
+    const {newPassword, recoveryCode} = req.body
+        if(!recoveryCode) return res.sendStatus(400)
+        const passwordSalt = await bcrypt.genSalt(10)
+        const newPasswordHash = generatedHash(newPassword, passwordSalt)
+        const result = await patreonUsers.updateOne({recoveryCode}, {recoveryCode: null, 'AccountData.passwordHash': newPasswordHash})
+        if(result.matchedCount === 1) return res.sendStatus(204)
+        else return res.sendStatus(400)
+    } catch (err) {
+        console.log(err, `=> post "/new-password" emailRouter`)
+        return null
+    }
+})
+

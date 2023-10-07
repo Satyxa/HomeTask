@@ -97,6 +97,14 @@ export const commentValidator = [
     body('content', 'content failed').exists().isLength({min: 20, max: 300})
 ]
 
+export const isEmailCorrect = [
+    body('email', 'incorrect email').exists().isString().isEmail()
+]
+
+export const isNewPasswordCorrect = [
+    body('newPassword', 'incorrect password').exists().isString().isLength({min: 6, max: 20})
+]
+
 export const getResultValidation = (req: Request) => {
     const resultValidation: Result<ValidationError> = validationResult(req)
     if(!resultValidation.isEmpty()){

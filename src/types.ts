@@ -38,6 +38,7 @@ export type UserAccountDBType = {
     AccountData: AccountDataType
     EmailConfirmation: EmailConfirmationType
     sessions: SessionsType[]
+    recoveryCode: string | null
 }
 
 export type userLoginT = {

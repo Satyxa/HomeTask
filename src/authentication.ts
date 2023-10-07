@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken'
 import add from 'date-fns/add'
 const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 
-const generatedHash = async (password: string, salt: string) => await bcrypt.hash(password, salt)
+export const generatedHash = async (password: string, salt: string) => await bcrypt.hash(password, salt)
 
 export const createUser = async (login: string, email: string, password: string): Promise<UserAccountDBType> => {
     const passwordSalt = await bcrypt.genSalt(10)
@@ -23,7 +23,8 @@ export const createUser = async (login: string, email: string, password: string)
             expirationDate: add(new Date(), {hours: 1, minutes: 3}).toISOString(),
             isConfirmed: false
         },
-        sessions: []
+        sessions: [],
+        recoveryCode: null
     }
 }
 
