@@ -11,70 +11,95 @@ import {DB_Utils} from "../DB-utils";
 export const postsRouter = Router({})
 
 postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
-    const id = req.params.id
-    const {pageNumber, pageSize, sortBy, sortDirection} = await paginationSort(req)
-    // const filter: Filter<commentsT> = {$and: [{postId: id},{userLogin: {$regex: searchNameTerm ?? '', $options: 'i'}}]}
-    const filter: Filter<commentsT> = {postId: id}
-    const totalCount = await patreonComments.countDocuments(filter)
-    const pagesCount = Math.ceil(totalCount / pageSize)
+    try {
+        const id = req.params.id
+        const {pageNumber, pageSize, sortBy, sortDirection} = await paginationSort(req)
+        const filter: Filter<commentsT> = {postId: id}
+        const totalCount = await patreonComments.countDocuments(filter)
+        const pagesCount = Math.ceil(totalCount / pageSize)
 
-    if (!await patreonPosts.findOne({id}))return res.sendStatus(404)
+        if (!await patreonPosts.findOne({id}))return res.sendStatus(404)
 
-    const comments = await commentsPagAndSort(filter, sortBy, sortDirection, pageSize, pageNumber)
+        const comments = await commentsPagAndSort(filter, sortBy, sortDirection, pageSize, pageNumber)
 
-    return res.status(200).send({
-        pagesCount, page: +pageNumber,
-        pageSize, totalCount, items: comments})
+        return res.status(200).send({
+            pagesCount, page: +pageNumber,
+            pageSize, totalCount, items: comments})
+    } catch (err){
+        console.log(err, `=> get "/:id/comments" postsRouter`)
+        return res.sendStatus(500)
+    }
 })
 
 postsRouter.post('/:id/comments',AuthMiddleware, ...commentValidator, checkValidation, async (req:Request, res:Response) => {
-    const id = req.params.id
-    const content: string = req.body.content
+    try {
+        const id = req.params.id
+        const content: string = req.body.content
 
-    if(!await patreonPosts.findOne({id})) return res.sendStatus(404)
-    const user = await patreonUsers.findOne({id: req.userId!})
-    if(!user)return res.sendStatus(404)
+        if(!await patreonPosts.findOne({id})) return res.sendStatus(404)
+        const user = await patreonUsers.findOne({id: req.userId!})
+        if(!user)return res.sendStatus(404)
 
-    const {comment, viewComment} = DB_Utils.createComment(id, content, user)
+        const {comment, viewComment} = DB_Utils.createComment(id, content, user)
 
-    await patreonComments.insertOne({...comment})
-    await patreonPosts.updateOne({id}, {$push: {comments: comment}})
-    return res.status(201).send(viewComment)
+        await patreonComments.insertOne({...comment})
+        await patreonPosts.updateOne({id}, {$push: {comments: comment}})
+        return res.status(201).send(viewComment)
+    } catch (err){
+        console.log(err, `=> create comment for post "/:id/comments" postsRouter`)
+        return res.sendStatus(500)
+    }
 })
 
 postsRouter.get('/', async (req: Request, res: Response) => {
-    const {pageNumber, pageSize, sortBy, sortDirection} = await paginationSort(req)
-    const totalCount = await patreonPosts.countDocuments({})
-    const pagesCount = Math.ceil(totalCount / pageSize)
+    try {
+        const {pageNumber, pageSize, sortBy, sortDirection} = await paginationSort(req)
+        const totalCount = await patreonPosts.countDocuments({})
+        const pagesCount = Math.ceil(totalCount / pageSize)
 
-    const posts = await postPagAndSort({}, sortBy, sortDirection, pageSize, pageNumber)
-    return res.status(200).send({
-    pagesCount, page: pageNumber,
-    pageSize, totalCount, items: posts})
+        const posts = await postPagAndSort({}, sortBy, sortDirection, pageSize, pageNumber)
+        return res.status(200).send({
+            pagesCount, page: pageNumber,
+            pageSize, totalCount, items: posts})
+    } catch (err){
+        console.log(err, `=> get all posts with sort and pagination "/" postsRouter`)
+        return res.sendStatus(500)
+    }
 })
 
 postsRouter.get('/:id', async (req: Request, res: Response) => {
-    const {foundPost} = await DB_Utils.findPost(req, res)
-    if (!foundPost) return res.sendStatus(404)
-    return res.status(200).send(foundPost)
+    try {
+        const {foundPost} = await DB_Utils.findPost(req, res)
+        if (!foundPost) return res.sendStatus(404)
+        return res.status(200).send(foundPost)
+    } catch (err){
+        console.log(err, `=> get post by id "/:id" postsRouter`)
+        return res.sendStatus(500)
+    }
 })
 
 postsRouter.post('/', checkAuth, ...postCreateValidation, ...blogIdValidation, checkValidation, async (req: Request, res: Response) => {
-    const {title, shortDescription, content, blogId} = req.body
-    const blog = await patreonBlogs.findOne({id: blogId})
-    if(!blog) return res.sendStatus(404)
-    const newPost: postT = DB_Utils.createPost(title, shortDescription, content, blogId, blog.name)
+    try {
+        const {title, shortDescription, content, blogId} = req.body
+        const blog = await patreonBlogs.findOne({id: blogId})
+        if(!blog) return res.sendStatus(404)
+        const newPost: postT = DB_Utils.createPost(title, shortDescription, content, blogId, blog.name)
 
-    await patreonPosts.insertOne({...newPost})
-    delete newPost.comments
-    return res.status(201).send(newPost)
+        await patreonPosts.insertOne({...newPost})
+        delete newPost.comments
+        return res.status(201).send(newPost)
+    } catch (err){
+        console.log(err, `=> create post "/" postsRouter`)
+        return res.sendStatus(500)
+    }
 })
 
 postsRouter.put('/:id', checkAuth, ...postCreateValidation,...blogIdValidation, checkValidation, async (req: Request, res: Response) => {
-    const {id} = req.params
-    const {title, shortDescription, content, blogId} = req.body
-    const blog = await patreonBlogs.findOne({id: blogId})
-    const result = await patreonPosts.updateOne({id},
+    try {
+        const {id} = req.params
+        const {title, shortDescription, content, blogId} = req.body
+        const blog = await patreonBlogs.findOne({id: blogId})
+        const result = await patreonPosts.updateOne({id},
             {
                 $set: {
                     title,
@@ -84,13 +109,22 @@ postsRouter.put('/:id', checkAuth, ...postCreateValidation,...blogIdValidation, 
                     blogName: blog!.name,
                 }
             })
-    if(result.matchedCount === 1){return res.sendStatus(204)}
-    else {return res.sendStatus(404)}
+        if(result.matchedCount === 1){return res.sendStatus(204)}
+        else {return res.sendStatus(404)}
+    } catch (err){
+        console.log(err, `=> update post (put) "/:id" postsRouter`)
+        return res.sendStatus(500)
+    }
 })
 
 postsRouter.delete('/:id', checkAuth,async (req: Request, res: Response) => {
-    const {id} = req.params
-    const result = await patreonPosts.deleteOne({id})
-    if(result.deletedCount === 1) return res.sendStatus(204)
-    else return res.sendStatus(404)
+    try {
+        const {id} = req.params
+        const result = await patreonPosts.deleteOne({id})
+        if(result.deletedCount === 1) return res.sendStatus(204)
+        else return res.sendStatus(404)
+    } catch (err) {
+        console.log(err, `=> delete "/:id" postsRouter`)
+        return res.sendStatus(500)
+    }
 })

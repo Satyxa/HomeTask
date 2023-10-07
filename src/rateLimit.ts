@@ -10,5 +10,5 @@ export const rateLimiter = async (req, res, next) => {
 
     await rateLimitCollection.insertOne({ip, url, date: timeNow})
     if(countOfConnections + 1 > 5) return res.sendStatus(429)
-    return  next()
+    return next()
 }

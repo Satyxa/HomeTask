@@ -10,7 +10,6 @@ import {registrationRouter} from "./routes/registration";
 import {emailRouter} from "./routes/email";
 import cookieParser from "cookie-parser";
 import {devicesRouter} from "./routes/devices";
-import {rateLimit} from 'express-rate-limit';
 const app = express();
 const port = process.env.PORT || 5200
 app.get('/', (req: Request, res: Response) => res.send('privet'))
@@ -27,16 +26,6 @@ app.use('/auth', registrationRouter)
 app.use('/auth', emailRouter)
 app.use('/comments', commentsRouter)
 app.use('/security/devices', devicesRouter)
-
-const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 15 minutes
-  limit: 3, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-  standardHeaders: 'draft-7', // Set `RateLimit` and `RateLimit-Policy` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  // store: ... , // Use an external store for more precise rate limiting
-})
-
-app.use('/auth/', limiter)
 
 app.delete('/testing/all-data', async(req: Request, res: Response) => {
   await patreonBlogs.deleteMany({})

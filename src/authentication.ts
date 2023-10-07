@@ -7,7 +7,6 @@ const secretKey = 'satyxaKeygghtthslkdfk!trerm'
 
 const generatedHash = async (password: string, salt: string) => await bcrypt.hash(password, salt)
 
-
 export const createUser = async (login: string, email: string, password: string): Promise<UserAccountDBType> => {
     const passwordSalt = await bcrypt.genSalt(10)
     const passwordHash = await generatedHash(password, passwordSalt)
@@ -24,12 +23,9 @@ export const createUser = async (login: string, email: string, password: string)
             expirationDate: add(new Date(), {hours: 1, minutes: 3}).toISOString(),
             isConfirmed: false
         },
-        tokenBlackList: [],
         sessions: []
     }
 }
-
-
 
 export const createToken = async (id: string, deviceId, ip, exp) => {
     return jwt.sign({userId: id, ip, deviceId}, secretKey, {expiresIn: exp})
@@ -39,10 +35,9 @@ export const createToken = async (id: string, deviceId, ip, exp) => {
 export const getUserIdByToken = (token: string) => {
     try {
         const result:any = jwt.verify(token, secretKey)
-        console.log(result)
         return result.userId
     } catch (err){
-        console.log(err)
+        console.log(err, `=> getUserIdByToken (file authentication)`)
         return null
     }
 }
@@ -50,9 +45,10 @@ export const getUserIdByToken = (token: string) => {
 export const getResultByToken = (refreshToken) => {
     try {
         const result =  jwt.verify(refreshToken, secretKey)
+        console.log(result + "прописать тип для result token")
         return result
     } catch (err){
-        console.warn(err)
+        console.log(err, `=> getResultByToken (file authentication)`)
         return null
     }
 }

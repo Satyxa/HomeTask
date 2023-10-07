@@ -1,7 +1,7 @@
 import {NextFunction, Request, Response, Router} from "express";
 import {patreonUsers} from "../db/db";
 import {UserAccountDBType, userT} from "../types";
-import {createUser} from "../autentification";
+import {createUser} from "../authentication";
 import {Filter} from "mongodb";
 import {paginationSort, usersPagAndSort} from "../PaginationAndSort";
 import {checkAuth, checkValidation, usersValidation} from "../validation";
@@ -9,37 +9,52 @@ import {checkAuth, checkValidation, usersValidation} from "../validation";
 export const usersRouter = Router({})
 
 usersRouter.get('/',async (req: Request, res: Response) => {
-  const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm, sortDirection} = await paginationSort(req)
-  const filter: Filter<userT> = {$or: [{'AccountData.username': {$regex: searchLoginTerm ?? '', $options: 'i'}}, {'AccountData.email': {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
-  const totalCount = await patreonUsers.countDocuments(filter)
-  const pagesCount = Math.ceil(totalCount / pageSize)
+  try {
+    const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm, sortDirection} = await paginationSort(req)
+    const filter: Filter<userT> = {$or: [{'AccountData.username': {$regex: searchLoginTerm ?? '', $options: 'i'}}, {'AccountData.email': {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
+    const totalCount = await patreonUsers.countDocuments(filter)
+    const pagesCount = Math.ceil(totalCount / pageSize)
 
-  const users = await usersPagAndSort(filter, sortBy, sortDirection, pageSize, pageNumber)
-  return res.status(200).send({
-    pagesCount, page: pageNumber, pageSize,
-    totalCount, items: users})
+    const users = await usersPagAndSort(filter, sortBy, sortDirection, pageSize, pageNumber)
+    return res.status(200).send({
+      pagesCount, page: pageNumber, pageSize,
+      totalCount, items: users})
+  }catch (err){
+    console.log(err, `=> get All "/" usersRouter`)
+    return null
+  }
 })
 
 usersRouter.post('/', checkAuth, ...usersValidation,checkValidation,  async(req: Request, res: Response) => {
-  const {email, login, password} = req.body
-  if(!email || !login || !password) return res.sendStatus(401)
+  try {
+    const {email, login, password} = req.body
+    if(!email || !login || !password) return res.sendStatus(401)
 
-  const newUser: UserAccountDBType = await createUser(login, email, password)
-  await patreonUsers.insertOne({...newUser})
+    const newUser: UserAccountDBType = await createUser(login, email, password)
+    await patreonUsers.insertOne({...newUser})
 
-  const viewUser = {
-    id: newUser.id,
-    login: newUser.AccountData.username,
-    email: newUser.AccountData.email,
-    createdAt: newUser.AccountData.createdAt
+    const viewUser = {
+      id: newUser.id,
+      login: newUser.AccountData.username,
+      email: newUser.AccountData.email,
+      createdAt: newUser.AccountData.createdAt
+    }
+    return res.status(201).send(viewUser)
+  } catch (err){
+    console.log(err, `=> post "/" usersRouter`)
+    return null
   }
-  return res.status(201).send(viewUser)
 })
 
 usersRouter.delete('/:id',checkAuth, async(req: Request, res: Response) => {
-  const id = req.params.id
-  const result = await patreonUsers.deleteOne({id})
-  if(result.deletedCount === 1) return res.sendStatus(204)
-  else return res.sendStatus(404)
+  try {
+    const id = req.params.id
+    const result = await patreonUsers.deleteOne({id})
+    if(result.deletedCount === 1) return res.sendStatus(204)
+    else return res.sendStatus(404)
+  } catch (err){
+    console.log(err, `=> delete "/:id" usersRouter`)
+    return null
+  }
 })
 

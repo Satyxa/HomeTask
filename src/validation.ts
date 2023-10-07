@@ -26,7 +26,7 @@ export const createVideoValidation = [
     body('author', 'author invalid').exists().trim().isLength({max: 20, min: 1}),
     body('availableResolutions', 'availableResolutions invalid').exists().isArray().custom(async val => {
         const AvRes = ['P144', 'P240', 'P360', 'P480', 'P720', 'P1080', 'P1440', 'P2160']
-        val.map(resolution => {
+        val.map((resolution: string) => {
             if(!AvRes.includes(resolution)){
                 throw new Error('not existing resolution')
             } else return true
@@ -116,7 +116,7 @@ export const getResultValidation = (req: Request) => {
 
 }
 
-export const checkValidation = (req, res, next) => {
+export const checkValidation = (req: Request, res: Response, next: NextFunction) => {
     const resultValidation = getResultValidation(req)
     if (resultValidation !== 1) return res.status(400).send({errorsMessages: resultValidation})
     else next()

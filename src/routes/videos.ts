@@ -36,7 +36,7 @@ videosRouter.put('/:id', ...updateVideoValidation,checkValidation, async (req: R
 
   const {title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate} = req.body
 
-  const updatedVideo: updatedVideoType = DB_Utils.updateVideo(
+  const updatedVideo = DB_Utils.updateVideo(
       title, author,minAgeRestriction,
       availableResolutions, publicationDate, canBeDownloaded)
 
