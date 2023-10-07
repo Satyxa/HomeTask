@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from "express";
 import {getResultByToken} from "./authentication";
-import {patreonUsers} from "./db/db";
+import {UserModel} from "./db/UserModel";
 export const AuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const refreshToken = req.cookies.refreshToken
@@ -8,7 +8,7 @@ export const AuthMiddleware = async (req: Request, res: Response, next: NextFunc
         if(!getResultByToken(refreshToken)) return res.sendStatus(401)
 
         const {userId, deviceId, iat} = getResultByToken(refreshToken)
-        const foundUser = await patreonUsers.findOne({id:userId})
+        const foundUser = await UserModel.findOne({id:userId})
         if(!foundUser) return res.sendStatus(401)
 
         const existDevice = foundUser.sessions.some(device => device.deviceId === deviceId)

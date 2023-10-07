@@ -73,7 +73,7 @@ blogsRouter.post('/:id/posts',checkAuth,...postCreateValidation, checkValidation
             createdAt: new Date().toISOString(),
             comments: []
         }
-        await PostModel.insertOne({...newPost})
+        await PostModel.create({...newPost})
         delete newPost.comments
         res.status(201).send(newPost)
     } catch (err){
@@ -93,7 +93,7 @@ blogsRouter.post('/',checkAuth, ...blogsCreateValidation,checkValidation, async(
             isMembership: false,
             createdAt: new Date().toISOString()
         }
-        await BlogModel.insertOne({...newBlog})
+        await BlogModel.create({...newBlog})
         res.status(201).send(newBlog)
     } catch (err){
         console.log(err, `=> create blog (post method) "/" blogsRouter`)

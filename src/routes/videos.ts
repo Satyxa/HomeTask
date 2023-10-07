@@ -25,7 +25,7 @@ videosRouter.post('/',  ...createVideoValidation,checkValidation, async (req: Re
   const newVideoId = await VideoModel.countDocuments({})
   const newVideo: videoT = DB_Utils.createNewVideo(newVideoId, title, author, dateNow, availableResolutions)
 
-  await VideoModel.insertOne(newVideo)
+  await VideoModel.create(newVideo)
   return res.status(201).send(newVideo)
 })
 

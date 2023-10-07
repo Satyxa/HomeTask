@@ -31,7 +31,7 @@ usersRouter.post('/', checkAuth, ...usersValidation,checkValidation,  async(req:
     if(!email || !login || !password) return res.sendStatus(401)
 
     const newUser: UserAccountDBType = await createUser(login, email, password)
-    await UserModel.insertOne({...newUser})
+    await UserModel.create({...newUser})
 
     const viewUser = {
       id: newUser.id,

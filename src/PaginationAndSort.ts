@@ -1,7 +1,7 @@
-import {Filter} from "mongodb";
-import {pagSortT, userT} from "./types";
-import {patreonBlogs, patreonComments, patreonPosts, patreonUsers} from "./db/db";
-
+import {BlogModel} from "./db/BlogModel";
+import {CommentModel} from "./db/CommentModel";
+import {PostModel} from "./db/PostModel";
+import {UserModel} from "./db/UserModel";
 
 export const paginationSort = async (req: any) => {
     let sortDirection: 'desc' | 'asc' = "desc"
@@ -22,37 +22,37 @@ export const paginationSort = async (req: any) => {
 }
 
 export const postPagAndSort = async(filter = {}, sortBy, sortDirection, pageSize, pageNumber) => {
-    return await patreonPosts
+    return PostModel
         .find(filter, { projection: { _id:0, comments:0 }})
         .sort({[sortBy!]: sortDirection})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
-        .toArray()
+        .lean()
 }
 
 export const blogPagAndSort = async(filter, sortBy, sortDirection, pageSize, pageNumber) => {
-    return await patreonBlogs
+    return BlogModel
         .find(filter, { projection : { _id:0 }})
         .sort({[sortBy!]: sortDirection})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
-        .toArray()
+        .lean()
 }
 
 export const commentsPagAndSort = async(filter, sortBy, sortDirection, pageSize, pageNumber) => {
-    return await patreonComments
+    return  CommentModel
         .find(filter, { projection : { _id:0, postId: 0 }})
         .sort({[sortBy!]: sortDirection})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
-        .toArray()
+        .lean()
 }
 
 export const usersPagAndSort = async(filter, sortBy, sortDirection, pageSize, pageNumber) => {
-    return await patreonUsers
+    return  UserModel
         .find(filter, { projection : { _id:0, passwordHash: 0, passwordSalt: 0 }})
         .sort({[sortBy]: sortDirection})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
-        .toArray()
+        .lean()
 }

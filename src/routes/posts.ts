@@ -45,7 +45,7 @@ postsRouter.post('/:id/comments',AuthMiddleware, ...commentValidator, checkValid
 
         const {comment, viewComment} = DB_Utils.createComment(id, content, user)
 
-        await CommentModel.insertOne({...comment})
+        await CommentModel.create({...comment})
         await PostModel.updateOne({id}, {$push: {comments: comment}})
         return res.status(201).send(viewComment)
     } catch (err){

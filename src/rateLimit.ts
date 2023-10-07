@@ -1,4 +1,4 @@
-import {rateLimitCollection} from "./db/db";
+import {RateLimitModel} from "./db/rateLimitModel";
 import {addSeconds} from "date-fns";
 
 export const rateLimiter = async (req, res, next) => {
@@ -6,9 +6,9 @@ export const rateLimiter = async (req, res, next) => {
     const timeNow = new Date()
     const url = req.originalUrl
 
-    const countOfConnections = await rateLimitCollection.countDocuments({ip, url, date: {$gte: addSeconds(timeNow, -10)}})
+    const countOfConnections = await RateLimitModel.countDocuments({ip, url, date: {$gte: addSeconds(timeNow, -10)}})
 
-    await rateLimitCollection.insertOne({ip, url, date: timeNow})
+    await RateLimitModel.create({ip, url, date: timeNow})
     if(countOfConnections + 1 > 5) return res.sendStatus(429)
     return next()
 }
