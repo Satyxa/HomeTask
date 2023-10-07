@@ -5,7 +5,13 @@ import {registrationRouter} from "./registration";
 import * as uuid from 'uuid'
 import {UserAccountDBType} from "../types";
 import {ModifyResult} from "mongodb";
-import {checkValidation, emailResending, isEmailCorrect, isNewPasswordCorrect} from "../validation";
+import {
+    checkValidation,
+    emailResending,
+    isEmailCorrect,
+    isNewPasswordCorrect,
+    isRecoveryCodeCorrect, newPassValidation
+} from "../validation";
 import {rateLimiter} from "../rateLimit";
 import {UserModel} from "../db/UserModel";
 import bcrypt from "bcrypt";
@@ -85,7 +91,7 @@ emailRouter.post('/password-recovery', rateLimiter, ...isEmailCorrect, checkVali
     }
 })
 
-emailRouter.post('/new-password', rateLimiter, ...isNewPasswordCorrect, checkValidation, async (req:Request, res: Response) => {
+emailRouter.post('/new-password', rateLimiter, ...newPassValidation, checkValidation, async (req:Request, res: Response) => {
     try {
     const {newPassword, recoveryCode} = req.body
         if(!recoveryCode) return res.sendStatus(400)
