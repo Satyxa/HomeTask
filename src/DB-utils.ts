@@ -1,4 +1,5 @@
-import {patreonBlogs, patreonPosts} from "./db/db";
+import {PostModel} from "./db/PostModel";
+import {BlogModel} from "./db/BlogModel";
 import {Request, Response} from "express";
 import {commentsT, postT} from "./types";
 import * as uuid from "uuid";
@@ -6,13 +7,13 @@ import * as uuid from "uuid";
 export const DB_Utils = {
     findBlog: async(req: Request, res: Response) => {
         const {id} = req.params
-        const foundBlog = await patreonBlogs.findOne({id}, { projection : { _id:0 }})
+        const foundBlog = await BlogModel.findOne({id}, { projection : { _id:0 }})
         return {id, foundBlog}
     },
 
     findPost: async(req: Request, res: Response) => {
         const {id} = req.params
-        const foundPost = await patreonPosts.findOne({id}, { projection : { _id:0, comments: 0 }})
+        const foundPost = await PostModel.findOne({id}, { projection : { _id:0, comments: 0 }})
         return {id, foundPost}
     },
 

@@ -38,7 +38,7 @@ export type UserAccountDBType = {
     AccountData: AccountDataType
     EmailConfirmation: EmailConfirmationType
     sessions: SessionsType[]
-    recoveryCode: string | null
+    recoveryCode: string
 }
 
 export type userLoginT = {
@@ -127,4 +127,10 @@ export type updatedVideoType = {
 export type ValidationErrorType = {
     message: string
     field: string
+}
+
+export type rateLimitT = {
+    ip: string
+    url: string
+    date: string
 }

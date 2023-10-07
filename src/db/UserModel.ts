@@ -8,20 +8,20 @@ export const UserSchema = new mongoose.Schema<WithId<UserAccountDBType>>({
         username: String,
         email: String,
         passwordHash: String,
-        createdAt: String
+        createdAt: Date
     },
     EmailConfirmation: {
         confirmationCode: String,
-        expirationDate: String,
+        expirationDate: Date,
         isConfirmed: Boolean
     },
     sessions: {
         ip: String,
         title: String,
         deviceId: String,
-        lastActiveDate: String,
+        lastActiveDate: Date,
     },
-    recoveryCode: String | null
+    recoveryCode: String
 })
 
 export const UserModel = mongoose.model('users', UserSchema)

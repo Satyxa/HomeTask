@@ -24,7 +24,7 @@ export const createUser = async (login: string, email: string, password: string)
             isConfirmed: false
         },
         sessions: [],
-        recoveryCode: null
+        recoveryCode: ''
     }
 }
 

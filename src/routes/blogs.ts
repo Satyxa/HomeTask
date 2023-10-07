@@ -1,5 +1,6 @@
 import {Router, Response, Request} from "express";
-import {patreonBlogs, patreonPosts} from "../db/db";
+import {BlogModel} from "../db/BlogModel";
+import {PostModel} from "../db/PostModel";
 import {postT, blogsT} from '../types'
 import * as uuid from 'uuid'
 import {Filter} from "mongodb";
@@ -18,7 +19,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
         if (!foundBlog) return res.sendStatus(404)
         const {pageNumber, pageSize, sortBy, sortDirection} = await paginationSort(req)
 
-        const totalCount = await patreonPosts.countDocuments({blogId: id})
+        const totalCount = await PostModel.countDocuments({blogId: id})
         const pagesCount = Math.ceil(totalCount / pageSize)
         const findFilter = {blogId: id}
         const posts = await postPagAndSort(findFilter, sortBy, sortDirection , pageSize, pageNumber)
@@ -35,7 +36,7 @@ blogsRouter.get('/', async(req: Request, res: Response) => {
     try {
         const {pageNumber, pageSize, sortBy, searchNameTerm, sortDirection} = await paginationSort(req)
         const filter: Filter<blogsT> = {name: {$regex: searchNameTerm ?? '', $options: 'i'}}
-        const totalCount = await patreonBlogs.countDocuments(filter)
+        const totalCount = await BlogModel.countDocuments(filter)
         const pagesCount = Math.ceil(totalCount / pageSize)
 
         const blogs = await blogPagAndSort(filter, sortBy, sortDirection , pageSize, pageNumber)
@@ -72,7 +73,7 @@ blogsRouter.post('/:id/posts',checkAuth,...postCreateValidation, checkValidation
             createdAt: new Date().toISOString(),
             comments: []
         }
-        await patreonPosts.insertOne({...newPost})
+        await PostModel.insertOne({...newPost})
         delete newPost.comments
         res.status(201).send(newPost)
     } catch (err){
@@ -92,7 +93,7 @@ blogsRouter.post('/',checkAuth, ...blogsCreateValidation,checkValidation, async(
             isMembership: false,
             createdAt: new Date().toISOString()
         }
-        await patreonBlogs.insertOne({...newBlog})
+        await BlogModel.insertOne({...newBlog})
         res.status(201).send(newBlog)
     } catch (err){
         console.log(err, `=> create blog (post method) "/" blogsRouter`)
@@ -104,7 +105,7 @@ blogsRouter.put('/:id', checkAuth, ...blogsCreateValidation,checkValidation, asy
     try {
         const {id} = req.params
         const {name, description, websiteUrl} = req.body
-        const result = await patreonBlogs.updateOne({id}, {
+        const result = await BlogModel.updateOne({id}, {
             $set: {id, name, description, websiteUrl}
         })
         if(result.matchedCount === 1) return res.sendStatus(204)
@@ -118,7 +119,7 @@ blogsRouter.put('/:id', checkAuth, ...blogsCreateValidation,checkValidation, asy
 blogsRouter.delete('/:id',checkAuth, async (req: Request, res: Response) => {
     try {
         const {id} = req.params
-        const result = await patreonBlogs.deleteOne({id})
+        const result = await BlogModel.deleteOne({id})
         if (result.deletedCount === 1) return res.sendStatus(204)
         else return res.sendStatus(404)
     } catch (err){

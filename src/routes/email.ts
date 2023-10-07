@@ -1,6 +1,6 @@
 import {Router, Request, Response} from "express";
 import {emailAdapter} from "../email-adapter";
-import {patreonUsers} from "../db/db";
+import {UserModel} from "../db/UserModel";
 import {registrationRouter} from "./registration";
 import * as uuid from 'uuid'
 import {UserAccountDBType} from "../types";
@@ -13,7 +13,6 @@ import {
     isRecoveryCodeCorrect, newPassValidation
 } from "../validation";
 import {rateLimiter} from "../rateLimit";
-import {UserModel} from "../db/UserModel";
 import bcrypt from "bcrypt";
 import {generatedHash} from "../authentication";
 export const emailRouter = Router({})
@@ -22,11 +21,11 @@ emailRouter.post('/registration-confirmation',rateLimiter, async (req: Request, 
     try {
         const code = req.body.code
         if(!code) return res.sendStatus(400)
-        const checkConfirmationStatus = await patreonUsers.findOne({"EmailConfirmation.confirmationCode": code})
+        const checkConfirmationStatus = await UserModel.findOne({"EmailConfirmation.confirmationCode": code})
         if(!checkConfirmationStatus) return res.status(400).send({ errorsMessages: [{ message: 'invalid code', field: "code" }] })
         if (checkConfirmationStatus.EmailConfirmation.isConfirmed) return res.status(400).send({ errorsMessages: [{ message: 'already confirmed', field: "code" }] })
 
-        const result = await patreonUsers.updateOne({"EmailConfirmation.confirmationCode": code}, {
+        const result = await UserModel.updateOne({"EmailConfirmation.confirmationCode": code}, {
             $set: {"EmailConfirmation.isConfirmed": true}})
         if (result.matchedCount === 1) return res.sendStatus(204)
     } catch (err){
@@ -49,11 +48,11 @@ registrationRouter.post('/registration-email-resending',rateLimiter, ...emailRes
     try {
         const email: string = req.body.email
         if (!email) return res.sendStatus(400)
-        const user = await patreonUsers.findOne({'AccountData.email': email})
+        const user = await UserModel.findOne({'AccountData.email': email})
         if(!user) return res.sendStatus(400)
         else if(user.EmailConfirmation.isConfirmed) return res.sendStatus(400)
 
-        const userWithUpdatedCode: ModifyResult<UserAccountDBType> = await patreonUsers.findOneAndUpdate(
+        const userWithUpdatedCode: ModifyResult<UserAccountDBType> = await UserModel.findOneAndUpdate(
             {'AccountData.email': email},
             {$set: {'EmailConfirmation.confirmationCode': uuid.v4()}}, {returnDocument: 'after'})
 
@@ -72,12 +71,11 @@ registrationRouter.post('/registration-email-resending',rateLimiter, ...emailRes
 emailRouter.post('/password-recovery', rateLimiter, ...isEmailCorrect, checkValidation, async (req:Request, res: Response) => {
     try {
         const {email} = req.body
-        const user = await patreonUsers.findOne({'AccountData.email': email})
+        const user = await UserModel.findOne({'AccountData.email': email})
         if(!user) return res.sendStatus(204)
         else {
             const recoveryCode = uuid.v4()
-            await patreonUsers.updateOne({'AccountData.email': email}, {$set: {recoveryCode: recoveryCode}})
-            console.log('new recovery code' + user.recoveryCode)
+            await UserModel.updateOne({'AccountData.email': email}, {$set: {recoveryCode: recoveryCode}})
             const subject = 'Password Recovery'
             const message = `<h1>Password recovery</h1>
        <p>To finish password recovery please follow the link below:
@@ -97,7 +95,7 @@ emailRouter.post('/new-password', rateLimiter, ...newPassValidation, checkValida
         if(!recoveryCode) return res.sendStatus(400)
         const passwordSalt = await bcrypt.genSalt(10)
         const newPasswordHash = await generatedHash(newPassword, passwordSalt)
-        const result = await patreonUsers.updateOne({recoveryCode}, {$set:{recoveryCode: null, 'AccountData.passwordHash': newPasswordHash}})
+        const result = await UserModel.updateOne({recoveryCode}, {$set:{recoveryCode: '', 'AccountData.passwordHash': newPasswordHash}})
         if(result.matchedCount >= 1) return res.sendStatus(204)
         else return res.sendStatus(400)
     } catch (err) {

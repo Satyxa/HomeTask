@@ -1,6 +1,7 @@
 import {NextFunction, Request, Response} from "express";
 import {errorField} from "./types";
-import {patreonBlogs, patreonUsers} from "./db/db";
+import {UserModel} from "./db/UserModel";
+import {BlogModel} from "./db/BlogModel"
 import {body, Result, ValidationError, validationResult} from "express-validator";
 import exp from "constants";
 
@@ -48,7 +49,7 @@ export const postCreateValidation = [
 
 export const blogIdValidation = [
     body('blogId', 'blogId Invalid').exists().isString().custom(async val => {
-        const result = await patreonBlogs.findOne({id: val})
+        const result = await BlogModel.findOne({id: val})
         if (!result) throw new Error('not existing blogId')
         else return true
     })
@@ -62,7 +63,7 @@ export const blogsCreateValidation = [
 
 export const emailResending = [
     body('email', 'incorrect email').exists().isString().isLength({min: 6}).isEmail().custom(async (val) => {
-        const result = await patreonUsers.findOne({'AccountData.email': val})
+        const result = await UserModel.findOne({'AccountData.email': val})
         if(!result)throw new Error('email not exist')
         const confirmedStatus = result!.EmailConfirmation.isConfirmed
         if(confirmedStatus) throw new Error('email already confirmed')
@@ -73,14 +74,14 @@ export const emailResending = [
 export const registerValidation = [
     body('password', 'incorrect password').exists().isString().isLength({min: 6, max: 20}),
     body('email', 'incorrect email').exists().isString().isEmail().custom(async (val) => {
-        const result = await patreonUsers.findOne({'AccountData.email': val})
+        const result = await UserModel.findOne({'AccountData.email': val})
         console.log(result)
         if(result){
             throw new Error('email already exist')
         } else return true
         }),
     body('login', 'incorrect login').exists().isString().isLength({min: 3, max: 10}).custom(async (val) => {
-        const result = await patreonUsers.findOne({'AccountData.username': val})
+        const result = await UserModel.findOne({'AccountData.username': val})
         if(result){
             throw new Error('login already exist')
         } else return true
@@ -107,7 +108,7 @@ export const isNewPasswordCorrect = [
 
 export const isRecoveryCodeCorrect = [
     body('recoveryCode', 'incorrect recoveryCode').exists().isString().custom(async (val) => {
-    const result = await patreonUsers.findOne({recoveryCode: val})
+    const result = await UserModel.findOne({recoveryCode: val})
         if(result){
             throw new Error('login already exist')
         } else return true
@@ -117,7 +118,7 @@ export const isRecoveryCodeCorrect = [
 export const newPassValidation = [
     body('newPassword', 'incorrect password').exists().isString().isLength({min: 6, max: 20}),
     body('recoveryCode', 'incorrect recoveryCode').exists().isString().custom(async (val) => {
-        const result = await patreonUsers.findOne({recoveryCode: val})
+        const result = await UserModel.findOne({recoveryCode: val})
         if(!result){
             throw new Error('recovery code is incorrect')
         } else return true

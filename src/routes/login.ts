@@ -1,5 +1,5 @@
 import {Router, Request, Response} from "express";
-import {patreonUsers} from "../db/db";
+import {UserModel} from "../db/UserModel";
 import bcrypt from "bcrypt";
 import {createToken, getResultByToken, getUserIdByToken} from "../authentication";
 import jwt from "jsonwebtoken";
@@ -16,7 +16,7 @@ loginRouter.get('/me', async (req: Request, res: Response) => {
         const userId = getUserIdByToken(token)
         if(!userId) return res.sendStatus(401)
 
-        const foundUser = await patreonUsers.findOne({id:userId})
+        const foundUser = await UserModel.findOne({id:userId})
         if(!foundUser) return res.sendStatus(404)
         else {
             const {email, username} = foundUser.AccountData
@@ -35,7 +35,7 @@ loginRouter.post('/login', rateLimiter, async (req: Request, res: Response) => {
         const {loginOrEmail, password} = req.body
         if(!loginOrEmail || !password )return res.sendStatus(400)
         const filter = {$or: [{'AccountData.email': loginOrEmail}, {'AccountData.username': loginOrEmail}]}
-        const foundUser = await patreonUsers.findOne(filter)
+        const foundUser = await UserModel.findOne(filter)
         if(!foundUser) return res.sendStatus(401)
 
         const isValidPassword = await bcrypt.compare(password, foundUser.AccountData.passwordHash)
@@ -56,7 +56,7 @@ loginRouter.post('/login', rateLimiter, async (req: Request, res: Response) => {
                 lastActiveDate: new Date(iat * 1000).toISOString()
             }
 
-            await patreonUsers.updateOne(filter, {$push: {sessions: newDevice}})
+            await UserModel.updateOne(filter, {$push: {sessions: newDevice}})
             res.cookie('refreshToken', RefreshToken, {httpOnly: true,secure: true})
             return res.status(200).send({accessToken: token})
         } else return res.sendStatus(401)
@@ -73,7 +73,7 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
         const resultToken: any = getResultByToken(refreshToken)
         if(new Date(resultToken.exp * 1000) < new Date()) return res.sendStatus(401)
 
-        const user = await patreonUsers.findOne({'id': resultToken.userId})
+        const user = await UserModel.findOne({'id': resultToken.userId})
         if (!user)return res.sendStatus(401)
 
         const AccessToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'10s')
@@ -83,7 +83,7 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
         const sessions = [...user.sessions]
         const sessionForUpdate = sessions.find(s => s.deviceId === resultToken.deviceId)
         sessionForUpdate.lastActiveDate =  new Date(iat * 1000).toISOString()
-        await patreonUsers.updateOne({'id': resultToken.userId}, {$set: {sessions}})
+        await UserModel.updateOne({'id': resultToken.userId}, {$set: {sessions}})
         res.cookie('refreshToken', newRefreshToken, {httpOnly: true,secure: true})
         return res.status(200).send({accessToken: AccessToken})
     } catch (err) {
@@ -101,7 +101,7 @@ loginRouter.post('/logout', async (req:Request, res: Response) => {
         const {userId, deviceId}: string = getResultByToken(refreshToken)
         if(!userId)return res.sendStatus(401)
 
-        const result = await patreonUsers.updateOne({id: userId},
+        const result = await UserModel.updateOne({id: userId},
             {$pull: {sessions: {deviceId}}})
 
         if(result.matchedCount === 1) return res.sendStatus(204)

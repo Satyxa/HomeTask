@@ -1,5 +1,5 @@
 import {NextFunction, Request, Response, Router} from "express";
-import {patreonUsers} from "../db/db";
+import {UserModel} from "../db/UserModel";
 import {UserAccountDBType, userT} from "../types";
 import {createUser} from "../authentication";
 import {Filter} from "mongodb";
@@ -12,7 +12,7 @@ usersRouter.get('/',async (req: Request, res: Response) => {
   try {
     const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm, sortDirection} = await paginationSort(req)
     const filter: Filter<userT> = {$or: [{'AccountData.username': {$regex: searchLoginTerm ?? '', $options: 'i'}}, {'AccountData.email': {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
-    const totalCount = await patreonUsers.countDocuments(filter)
+    const totalCount = await UserModel.countDocuments(filter)
     const pagesCount = Math.ceil(totalCount / pageSize)
 
     const users = await usersPagAndSort(filter, sortBy, sortDirection, pageSize, pageNumber)
@@ -31,7 +31,7 @@ usersRouter.post('/', checkAuth, ...usersValidation,checkValidation,  async(req:
     if(!email || !login || !password) return res.sendStatus(401)
 
     const newUser: UserAccountDBType = await createUser(login, email, password)
-    await patreonUsers.insertOne({...newUser})
+    await UserModel.insertOne({...newUser})
 
     const viewUser = {
       id: newUser.id,
@@ -49,7 +49,8 @@ usersRouter.post('/', checkAuth, ...usersValidation,checkValidation,  async(req:
 usersRouter.delete('/:id',checkAuth, async(req: Request, res: Response) => {
   try {
     const id = req.params.id
-    const result = await patreonUsers.deleteOne({id})
+    const result = await UserModel.deleteOne({id})
+    console.log(result)
     if(result.deletedCount === 1) return res.sendStatus(204)
     else return res.sendStatus(404)
   } catch (err){
