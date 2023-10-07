@@ -118,8 +118,8 @@ export const newPassValidation = [
     body('newPassword', 'incorrect password').exists().isString().isLength({min: 6, max: 20}),
     body('recoveryCode', 'incorrect recoveryCode').exists().isString().custom(async (val) => {
         const result = await patreonUsers.findOne({recoveryCode: val})
-        if(result){
-            throw new Error('login already exist')
+        if(!result){
+            throw new Error('recovery code is incorrect')
         } else return true
     })
 ]
