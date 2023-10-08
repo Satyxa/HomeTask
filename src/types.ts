@@ -87,6 +87,13 @@ export type commentsT = {
     createdAt: string
     postId: string
     likesInfo: likesInfoT
+    reactions: reactionsT[]
+}
+
+export type reactionsT = {
+        userId: string,
+        status: string,
+        createdAt: string
 }
 
 export type likesInfoT = {

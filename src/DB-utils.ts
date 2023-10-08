@@ -68,7 +68,8 @@ export const DB_Utils = {
                 likesCount: 0,
                 dislikesCount: 0,
                 myStatus: 'None'
-            }
+            },
+            reactions: []
         }
         const viewComment = {
             content: comment.content,
@@ -82,5 +83,12 @@ export const DB_Utils = {
             }
         }
         return {viewComment, comment}
+    },
+    createReaction: (userId, status) => {
+        return {
+            userId,
+            status,
+            createdAt: new Date().toISOString()
+        }
     }
 }
