@@ -115,6 +115,11 @@ export const isRecoveryCodeCorrect = [
 })
 ]
 
+export const isLikeStatusCorrect = [
+    body('likeStatus', 'incorrect likeStatus').exists().isString()
+        .isIn(['Like', 'Dislike', 'None'])
+]
+
 export const newPassValidation = [
     body('newPassword', 'incorrect password').exists().isString().isLength({min: 6, max: 20}),
     body('recoveryCode', 'incorrect recoveryCode').exists().isString().custom(async (val) => {

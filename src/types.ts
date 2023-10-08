@@ -86,6 +86,13 @@ export type commentsT = {
     content: string
     createdAt: string
     postId: string
+    likesInfo: likesInfoT
+}
+
+export type likesInfoT = {
+    likesCount: number,
+    dislikesCount: number,
+    myStatus: 'None' | 'Like' | 'Dislike'
 }
 
 export type commentatorInfoT = {

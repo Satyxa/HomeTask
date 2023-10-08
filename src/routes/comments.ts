@@ -1,7 +1,7 @@
 import {Router, Response, Request} from "express";
 import {CommentModel} from "../db/CommentModel";
 import {AuthMiddleware} from "../AuthMiddleware";
-import {commentValidator, getResultValidation} from "../validation";
+import {checkValidation, commentValidator, getResultValidation, isLikeStatusCorrect} from "../validation";
 
 
 export const commentsRouter = Router({})
@@ -38,6 +38,34 @@ commentsRouter.put('/:id', commentValidator,AuthMiddleware, async(req:Request, r
         return res.sendStatus(500)
     }
 
+})
+
+commentsRouter.put('/:commentId/like-status', AuthMiddleware, ...isLikeStatusCorrect, checkValidation, async (req:Request, res: Response) => {
+    const commentId = req.params.commentId
+    const {likeStatus} = req.body
+    if(!await CommentModel.findById({id: commentId})) return res.sendStatus(404)
+    const comment = await CommentModel.findById({id: commentId})
+    const myStatus = comment.likesInfo.myStatus
+    if(likeStatus === 'Like' && myStatus === 'None'){
+        await CommentModel.findByIdAndUpdate({id: commentId}, {'likesInfo.likesCount': +1, 'likesInfo.myStatus': 'Like'})
+    } else if(likeStatus === 'Dislike' && myStatus === 'None') {
+        await CommentModel.findByIdAndUpdate({id: commentId}, {'likesInfo.dislikesCount': +1, 'likesInfo.myStatus': 'Dislike'})
+    } else if(likeStatus === 'Like' && myStatus === 'Like') {
+        await CommentModel.findByIdAndUpdate({id: commentId}, {'likesInfo.likesCount': -1, 'likesInfo.myStatus': 'None'})
+    } else if(likeStatus === 'Dislike' && myStatus === 'Dislike') {
+        await CommentModel.findByIdAndUpdate({id: commentId}, {'likesInfo.dislikesCount': -1, 'likesInfo.myStatus': 'None'})
+    } else if(likeStatus === 'Dislike' && myStatus === 'Like'){
+        await CommentModel.findByIdAndUpdate({id: commentId}, {
+            'likesInfo.dislikesCount': +1,
+            'likesInfo.likesCount': -1,
+            'likesInfo.myStatus': 'Dislike'})
+    } else if(likeStatus === 'Like' && myStatus === 'Dislike'){
+        await CommentModel.findByIdAndUpdate({id: commentId}, {
+            'likesInfo.dislikesCount': -1,
+            'likesInfo.likesCount': +1,
+            'likesInfo.myStatus': 'Like'})
+    }
+    return res.sendStatus(204)
 })
 
 commentsRouter.delete('/:id', AuthMiddleware, async (req: Request, res: Response) => {

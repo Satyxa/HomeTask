@@ -63,13 +63,23 @@ export const DB_Utils = {
             commentatorInfo: {
                 userId: user.id,
                 userLogin: user.AccountData.username
+            },
+            likesInfo: {
+                likesCount: 0,
+                dislikesCount: 0,
+                myStatus: 'None'
             }
         }
         const viewComment = {
             content: comment.content,
             commentatorInfo: comment.commentatorInfo,
             createdAt: comment.createdAt,
-            id: comment.id
+            id: comment.id,
+            likesInfo: {
+                likesCount: 0,
+                dislikesCount: 0,
+                myStatus: 'None'
+            }
         }
         return {viewComment, comment}
     }

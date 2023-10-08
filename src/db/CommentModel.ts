@@ -10,6 +10,11 @@ export const CommentSchema = new mongoose.Schema<WithId<commentsT>>({
     commentatorInfo: {
         userId: String,
         userLogin: String
+    },
+    likesInfo: {
+        likesCount: Number,
+        dislikesCount: Number,
+        myStatus: String
     }
 })
 
