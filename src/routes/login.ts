@@ -45,8 +45,8 @@ loginRouter.post('/login', rateLimiter, async (req: Request, res: Response) => {
             let ip = req.ip
             const deviceId = uuid.v4()
 
-            const token = await createToken(foundUser.id, deviceId, ip,'10m')
-            const RefreshToken = await createToken(foundUser.id, deviceId,ip, '20m')
+            const token = await createToken(foundUser.id, deviceId, ip,'10h')
+            const RefreshToken = await createToken(foundUser.id, deviceId,ip, '20h')
             const {iat} = jwt.verify(token, secretKey)
 
             const newDevice = {
@@ -76,8 +76,8 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
         const user = await UserModel.findOne({'id': resultToken.userId})
         if (!user)return res.sendStatus(401)
 
-        const AccessToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'10m')
-        const newRefreshToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'20m')
+        const AccessToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'10h')
+        const newRefreshToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'20h')
 
         const {iat}: number = jwt.verify(newRefreshToken, secretKey)
         const sessions = [...user.sessions]
