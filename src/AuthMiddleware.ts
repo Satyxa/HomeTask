@@ -6,6 +6,7 @@ export const AuthMiddleware = async (req: Request, res: Response, next: NextFunc
         // const refreshToken = req.cookies.refreshToken
         // console.log(refreshToken)
         // if (!refreshToken) return res.sendStatus(401)
+        if(!req.headers.authorization) return res.sendStatus(401)
         const accessToken = req.headers.authorization.split(' ')[1]
         if(!accessToken) return res.sendStatus(401)
         if(!getResultByToken(accessToken)) return res.sendStatus(401)
@@ -18,7 +19,7 @@ export const AuthMiddleware = async (req: Request, res: Response, next: NextFunc
         if(existDevice || correctActiveDate){
             req.userId = foundUser.id
             next()
-        } else if (!existDevice || !correctActiveDate) return res.sendStatus(403)
+        }
         else return res.sendStatus(401)
     } catch (err) {
         console.log(err, `=> AuthMiddleware`)
