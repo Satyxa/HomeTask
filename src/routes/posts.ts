@@ -9,6 +9,7 @@ import {commentsPagAndSort, paginationSort, postPagAndSort} from "../PaginationA
 import {AuthMiddleware} from "../AuthMiddleware";
 import {Filter} from "mongodb";
 import {DB_Utils} from "../DB-utils";
+import {getUserIdByToken} from "../authentication";
 
 
 export const postsRouter = Router({})
@@ -24,6 +25,32 @@ postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
         if (!await PostModel.findOne({id}))return res.sendStatus(404)
 
         const comments = await commentsPagAndSort(filter, sortBy, sortDirection, pageSize, pageNumber)
+        let userId;
+        if(req.headers.authorization){
+            const accessToken = req.headers.authorization.split(' ')[1]
+            userId = getUserIdByToken(accessToken)
+
+            const viewComments = comments.map(c => ({
+                id: c.id,
+                content: c.content,
+                createdAt: c.createdAt,
+                commentatorInfo: c.commentatorInfo,
+                likesInfo: {
+                    likesCount: c.likesInfo.likesCount,
+                    dislikesCount: c.likesInfo.dislikesCount,
+                    myStatus: c.reactions.reduce((ac, r)=>{
+                        if(r.userId == userId) {
+                            ac = r.status;
+                            return ac
+                        }
+                        return ac
+                    }, 'None')
+                }
+            }))
+            return res.status(200).send({
+                pagesCount, page: +pageNumber,
+                pageSize, totalCount, items: viewComments})
+        }
 
         return res.status(200).send({
             pagesCount, page: +pageNumber,

@@ -83,7 +83,7 @@ commentsRouter.put('/:commentId/like-status', AuthMiddleware, ...isLikeStatusCor
             if(userLikeStatus.status == 'Like' && likeStatus =='Dislike'){
                  const result = await CommentModel.updateOne({id: commentId, reactions: {$elemMatch: {'userId': userLikeStatus.userId}}},
                     {$set: {reactions:reaction}, $inc: {'likesInfo.likesCount': -1, 'likesInfo.dislikesCount': 1},}, {returnDocument: "after"})
-                return res.status(200).send(result)
+                return res.sendStatus(204)
             }
             if(userLikeStatus.status == 'Like' && likeStatus == 'None'){
                  await CommentModel.updateOne({id: commentId},
