@@ -19,7 +19,7 @@ export const CommentSchema = new mongoose.Schema<WithId<commentsT>>({
     reactions: [{
         userId: String,
         status: String,
-        createdAt: String
+        createdAt: Date
     }]
 })
 

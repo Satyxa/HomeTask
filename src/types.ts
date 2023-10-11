@@ -78,6 +78,21 @@ export type postT = {
     blogName: string
     createdAt: string
     comments: commentsT[]
+    reactions: reactionsT[]
+    extendedLikesInfo: extendedLikesInfoT
+}
+
+export type extendedLikesInfoT = {
+    likesCount: number,
+    dislikesCount: number,
+    myStatus: string,
+    newestLikes: newestLikesT[]
+}
+
+export type newestLikesT = {
+    addedAt: string,
+    userId: string,
+    login: string
 }
 
 export type commentsT = {

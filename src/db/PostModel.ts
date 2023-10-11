@@ -19,6 +19,21 @@ export const PostSchema = new mongoose.Schema<WithId<postT>>({
             userId: String,
             userLogin: String
         }
+    }],
+    extendedLikesInfo: {
+        likesCount: Number,
+        dislikesCount: Number,
+        myStatus: String,
+        newestLikes: [{
+            addedAt: Date,
+            userId: String,
+            login: String
+        }],
+    },
+    reactions: [{
+        userId: String,
+        status: String,
+        createdAt: Date
     }]
 })
 

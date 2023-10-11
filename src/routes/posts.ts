@@ -3,8 +3,15 @@ import {UserModel} from '../db/UserModel'
 import {PostModel} from "../db/PostModel";
 import {BlogModel} from "../db/BlogModel";
 import {CommentModel} from "../db/CommentModel";
-import {commentsT, postT} from '../types'
-import {blogIdValidation, checkAuth, checkValidation, commentValidator, postCreateValidation} from "../validation";
+import {blogsT, commentsT, newestLikesT, postT, reactionsT, UserAccountDBType} from '../types'
+import {
+    blogIdValidation,
+    checkAuth,
+    checkValidation,
+    commentValidator,
+    isLikeStatusCorrect,
+    postCreateValidation
+} from "../validation";
 import {commentsPagAndSort, paginationSort, postPagAndSort} from "../PaginationAndSort";
 import {AuthMiddleware} from "../AuthMiddleware";
 import {Filter} from "mongodb";
@@ -111,7 +118,7 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
 postsRouter.post('/', checkAuth, ...postCreateValidation, ...blogIdValidation, checkValidation, async (req: Request, res: Response) => {
     try {
         const {title, shortDescription, content, blogId} = req.body
-        const blog = await BlogModel.findOne({id: blogId})
+        const blog: blogsT = await BlogModel.findOne({id: blogId})
         if(!blog) return res.sendStatus(404)
         const newPost: postT = DB_Utils.createPost(title, shortDescription, content, blogId, blog.name)
 
@@ -145,6 +152,58 @@ postsRouter.put('/:id', checkAuth, ...postCreateValidation,...blogIdValidation, 
         console.log(err, `=> update post (put) "/:id" postsRouter`)
         return res.sendStatus(500)
     }
+})
+
+postsRouter.put('/:id/like-status', AuthMiddleware, ...isLikeStatusCorrect, checkValidation, async (req: Request, res: Response) => {
+    const {id} = req.params
+    const {likeStatus} = req.body
+    if(!id) return res.sendStatus(400)
+    const post: postT = await PostModel.findOne({id}).lean()
+    if(!post) return res.sendStatus(404)
+
+    const userLikeStatus = post.reactions.filter(reaction => reaction.userId === req.userId)[0]
+    const reaction: reactionsT = DB_Utils.createReaction(req.userId, likeStatus)
+    if(!userLikeStatus && likeStatus === 'None') return res.sendStatus(204)
+    if(userLikeStatus && userLikeStatus.status === likeStatus) return res.sendStatus(204)
+
+    const user: UserAccountDBType = await UserModel.findOne({id: req.userId}).lean()
+    const login = user.AccountData.username
+    const newestLike: newestLikesT = DB_Utils.createNewestLike(req.userId, login)
+    if(!userLikeStatus){
+        if(likeStatus === 'Like'){
+            await PostModel.updateOne({id}, {$push: {reactions: reaction,
+                    'extendedLikesInfo.newestLikes': {$each: [newestLike], $position: 0}},
+            $inc: {'extendedLikesInfo.likesCount': 1, 'extendedLikesInfo.dislikesCount': 0}})
+            return res.sendStatus(204)
+        } else {
+            await PostModel.updateOne({id}, {$push: {reactions: reaction},
+                $inc: {'extendedLikesInfo.likesCount': 0, 'extendedLikesInfo.dislikesCount': 1}})
+            return res.sendStatus(204)
+        }
+    }
+    if(userLikeStatus){
+        if(userLikeStatus.status === 'Like'){
+            if(likeStatus === 'Dislike'){
+                await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
+                    {$set: {reactions: reaction}, $inc: {'extendedLikesInfo.likesCount': -1, 'extendedLikesInfo.dislikesCount': 1}})
+            } else {
+                await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
+                    {$pull: {reactions: {userId: userLikeStatus.userId}}, $inc: {'extendedLikesInfo.likesCount': -1}})
+            }
+        }
+
+        if(userLikeStatus.status === 'Dislike'){
+            if(likeStatus === 'Like'){
+                await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
+                {$push: {'extendedLikesInfo.newestLikes': {$each: [newestLike], $position: 0}},
+                $set: {reactions: reaction}, $inc: {'extendedLikesInfo.likesCount': 1, 'extendedLikesInfo.dislikesCount': -1}})
+            } else {
+                await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
+                    {$pull: {reactions: {userId: userLikeStatus.userId}}, $inc: {'extendedLikesInfo.dislikesCount': -1}})
+            }
+        }
+    }
+
 })
 
 postsRouter.delete('/:id', checkAuth,async (req: Request, res: Response) => {

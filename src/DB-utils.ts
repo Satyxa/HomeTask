@@ -1,7 +1,7 @@
 import {PostModel} from "./db/PostModel";
 import {BlogModel} from "./db/BlogModel";
 import {Request, Response} from "express";
-import {commentsT, postT} from "./types";
+import {commentsT, extendedLikesInfoT, postT} from "./types";
 import * as uuid from "uuid";
 
 export const DB_Utils = {
@@ -41,7 +41,7 @@ export const DB_Utils = {
         }
     },
 
-    createPost: (title, shortDescription, content, blogId, blogName) => {
+    createPost: (title, shortDescription, content, blogId, blogName): postT => {
         return {
             id: uuid.v4(),
             title,
@@ -50,7 +50,14 @@ export const DB_Utils = {
             blogId,
             blogName,
             createdAt: new Date().toISOString(),
-            comments: []
+            comments: [],
+            reactions: [],
+            extendedLikesInfo: {
+                likesCount: 0,
+                dislikesCount: 0,
+                myStatus: 'None',
+                newestLikes: []
+            }
         }
     },
 
@@ -89,6 +96,13 @@ export const DB_Utils = {
             userId,
             status,
             createdAt: new Date().toISOString()
+        }
+    },
+    createNewestLike: (userId, login) => {
+        return {
+            userId,
+            login,
+            addedAt: new Date().toISOString()
         }
     }
 }
