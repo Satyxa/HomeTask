@@ -95,9 +95,37 @@ postsRouter.get('/', async (req: Request, res: Response) => {
         const pagesCount = Math.ceil(totalCount / pageSize)
 
         const posts = await postPagAndSort({}, sortBy, sortDirection, pageSize, pageNumber)
-        return res.status(200).send({
-            pagesCount, page: pageNumber,
-            pageSize, totalCount, items: posts})
+        let userId = ''
+        if(req.headers.authorization) {
+            const accessToken = req.headers.authorization.split(' ')[1]
+            userId = getUserIdByToken(accessToken)
+        }
+            const viewPosts = posts.map(post => {
+                return {
+                    id: post.id,
+                    title: post.title,
+                    shortDescription: post.shortDescription,
+                    content: post.content,
+                    blogId: post.blogId,
+                    blogName: post.blogName,
+                    createdAt: post.createdAt,
+                    extendedLikesInfo: {
+                        likesCount: post.extendedLikesInfo.likesCount,
+                        dislikesCount: post.extendedLikesInfo.dislikesCount,
+                        myStatus: post.reactions.reduce((ac, r) => {
+                            if(r.userId === userId){
+                                return ac = r.status
+                            }
+                            return ac
+                        }, 'None'),
+                        newestLikes: post.extendedLikesInfo.newestLikes
+                    }
+                }
+            })
+            return res.status(200).send({
+                pagesCount, page: pageNumber,
+                pageSize, totalCount, items: viewPosts})
+
     } catch (err){
         console.log(err, `=> get all posts with sort and pagination "/" postsRouter`)
         return res.sendStatus(500)
@@ -106,8 +134,24 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 
 postsRouter.get('/:id', async (req: Request, res: Response) => {
     try {
-        const {foundPost} = await DB_Utils.findPost(req, res)
+        let {foundPost}: postT = await DB_Utils.findPost(req, res)
         if (!foundPost) return res.sendStatus(404)
+        if(req.headers.authorization){
+            const accessToken = req.headers.authorization.split(' ')[1]
+            let userId = getUserIdByToken(accessToken)
+            const userReaction = foundPost.reactions.find(userId)
+            delete foundPost.reactions
+            if(!userReaction){
+                foundPost.extendedLikesInfo.myStatus === 'None'
+                return res.status(200).send(foundPost)
+            }
+            const userLikeStatus = userReaction.status === 'Like' ? 'Like' : 'Dislike'
+            foundPost.extendedLikesInfo.myStatus === userLikeStatus
+            return res.status(200).send(foundPost)
+        }
+
+        delete foundPost.reactions
+        foundPost.extendedLikesInfo.myStatus === 'None'
         return res.status(200).send(foundPost)
     } catch (err){
         console.log(err, `=> get post by id "/:id" postsRouter`)
