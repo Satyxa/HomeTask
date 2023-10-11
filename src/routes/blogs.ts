@@ -9,6 +9,7 @@ import {blogsCreateValidation, postCreateValidation, checkAuth,
 } from "../validation";
 import {blogPagAndSort, paginationSort, postPagAndSort} from "../PaginationAndSort";
 import {DB_Utils} from "../DB-utils";
+import {getUserIdByToken} from "../authentication";
 
 
 export const blogsRouter = Router({})
@@ -23,9 +24,41 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
         const pagesCount = Math.ceil(totalCount / pageSize)
         const findFilter = {blogId: id}
         const posts = await postPagAndSort(findFilter, sortBy, sortDirection , pageSize, pageNumber)
+
+
+        let userId = ''
+        if(req.headers.authorization) {
+            const accessToken = req.headers.authorization.split(' ')[1]
+            userId = getUserIdByToken(accessToken)
+        }
+        const viewPosts = posts.map(post => {
+            return {
+                id: post.id,
+                title: post.title,
+                shortDescription: post.shortDescription,
+                content: post.content,
+                blogId: post.blogId,
+                blogName: post.blogName,
+                createdAt: post.createdAt,
+                extendedLikesInfo: {
+                    likesCount: post.extendedLikesInfo.likesCount,
+                    dislikesCount: post.extendedLikesInfo.dislikesCount,
+                    myStatus: post.reactions.reduce((ac, r) => {
+                        if(r.userId === userId){
+                            return ac = r.status
+                        }
+                        return ac
+                    }, 'None'),
+                    newestLikes: post.extendedLikesInfo.newestLikes.forEach((el, i) => {
+                        if(i < 3) return el })
+                }
+            }
+        })
+
+
         return res.status(200).send({
             pagesCount, page: pageNumber,
-            pageSize, totalCount, items: posts})
+            pageSize, totalCount, items: viewPosts})
     } catch (err){
         console.log(err, `=> get all posts for one blog "/:id/posts" blogsRouter`)
         return res.sendStatus(500)
