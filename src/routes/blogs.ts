@@ -63,7 +63,7 @@ blogsRouter.post('/:id/posts',checkAuth,...postCreateValidation, checkValidation
         const {id, foundBlog} = await DB_Utils.findBlog(req, res)
         if(!foundBlog) return res.sendStatus(404)
         const {title, shortDescription, content} = req.body
-        const newPost: postT = {
+        const newPost = {
             id: uuid.v4(),
             title,
             shortDescription,
@@ -71,7 +71,13 @@ blogsRouter.post('/:id/posts',checkAuth,...postCreateValidation, checkValidation
             blogId: id,
             blogName: 'string',
             createdAt: new Date().toISOString(),
-            comments: []
+            comments: [],
+            extendedLikesInfo: {
+                likesCount: 0,
+                dislikesCount: 0,
+                myStatus: 'None',
+                newestLikes: []
+            }
         }
         await PostModel.create({...newPost})
         delete newPost.comments
