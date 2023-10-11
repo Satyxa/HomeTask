@@ -137,29 +137,40 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 postsRouter.get('/:id', async (req: Request, res: Response) => {
     try {
         let {foundPost}: postT = await DB_Utils.findPost(req, res)
-        console.log(foundPost)
         if (!foundPost) return res.sendStatus(404)
+
+        let userId = ''
+
         if(req.headers.authorization){
             const accessToken = req.headers.authorization.split(' ')[1]
-            let userId = getUserIdByToken(accessToken)
-            const userReaction = foundPost.reactions.find(userId)
-            delete foundPost.reactions
-            const newestLikesThree = foundPost.extendedLikesInfo.newestLikes.forEach((el, i) => {
-                if(i < 3) return el
-            })
-            foundPost.extendedLikesInfo.newestLikes = newestLikesThree
-            if(!userReaction){
-                foundPost.extendedLikesInfo.myStatus === 'None'
-                return res.status(200).send(foundPost)
-            }
-            const userLikeStatus = userReaction.status === 'Like' ? 'Like' : 'Dislike'
-            foundPost.extendedLikesInfo.myStatus === userLikeStatus
-            return res.status(200).send(foundPost)
+            userId = getUserIdByToken(accessToken)
         }
 
-        delete foundPost.reactions
-        foundPost.extendedLikesInfo.myStatus === 'None'
-        return res.status(200).send(foundPost)
+        const viewPost = {
+            id: foundPost.id,
+            title: foundPost.title,
+            shortDescription: foundPost.shortDescription,
+            content: foundPost.content,
+            blogId: foundPost.blogId,
+            blogName: foundPost.blogName,
+            createdAt: foundPost.createdAt,
+            extendedLikesInfo: {
+                likesCount: foundPost.extendedLikesInfo.likesCount,
+                dislikesCount: foundPost.extendedLikesInfo.dislikesCount,
+                myStatus: foundPost.reactions.reduce((ac, r) => {
+                    if (r.userId === userId) {
+                        return ac = r.status
+                    }
+                    return ac
+                }, 'None'),
+                newestLikes: foundPost.extendedLikesInfo.newestLikes.forEach((el, i) => {
+                    if (i < 3) return el
+                })
+            }
+        }
+
+
+        return res.status(200).send(viewPost)
     } catch (err){
         console.log(err, `=> get post by id "/:id" postsRouter`)
         return res.sendStatus(500)

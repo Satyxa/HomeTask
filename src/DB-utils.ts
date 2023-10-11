@@ -13,7 +13,7 @@ export const DB_Utils = {
 
     findPost: async(req: Request, res: Response) => {
         const {id} = req.params
-        const foundPost = await PostModel.findOne({id}, { projection : { _id:0, comments: 0, 'extendedLikesInfo.newestLikes': 3 }})
+        const foundPost = await PostModel.findOne({id}, { projection : { _id:0, comments: 0}})
         return {id, foundPost}
     },
 
