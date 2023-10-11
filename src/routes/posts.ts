@@ -95,6 +95,7 @@ postsRouter.get('/', async (req: Request, res: Response) => {
         const pagesCount = Math.ceil(totalCount / pageSize)
 
         const posts = await postPagAndSort({}, sortBy, sortDirection, pageSize, pageNumber)
+        console.log(posts)
         let userId = ''
         if(req.headers.authorization) {
             const accessToken = req.headers.authorization.split(' ')[1]
@@ -118,7 +119,8 @@ postsRouter.get('/', async (req: Request, res: Response) => {
                             }
                             return ac
                         }, 'None'),
-                        newestLikes: post.extendedLikesInfo.newestLikes
+                        newestLikes: post.extendedLikesInfo.newestLikes.forEach((el, i) => {
+                            if(i < 3) return el })
                     }
                 }
             })
@@ -135,12 +137,17 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 postsRouter.get('/:id', async (req: Request, res: Response) => {
     try {
         let {foundPost}: postT = await DB_Utils.findPost(req, res)
+        console.log(foundPost)
         if (!foundPost) return res.sendStatus(404)
         if(req.headers.authorization){
             const accessToken = req.headers.authorization.split(' ')[1]
             let userId = getUserIdByToken(accessToken)
             const userReaction = foundPost.reactions.find(userId)
             delete foundPost.reactions
+            const newestLikesThree = foundPost.extendedLikesInfo.newestLikes.forEach((el, i) => {
+                if(i < 3) return el
+            })
+            foundPost.extendedLikesInfo.newestLikes = newestLikesThree
             if(!userReaction){
                 foundPost.extendedLikesInfo.myStatus === 'None'
                 return res.status(200).send(foundPost)
@@ -168,6 +175,7 @@ postsRouter.post('/', checkAuth, ...postCreateValidation, ...blogIdValidation, c
 
         await PostModel.create({...newPost})
         delete newPost.comments
+        delete newPost.reactions
         return res.status(201).send(newPost)
     } catch (err){
         console.log(err, `=> create post "/" postsRouter`)

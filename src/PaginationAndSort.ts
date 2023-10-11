@@ -23,7 +23,7 @@ export const paginationSort = async (req: any) => {
 
 export const postPagAndSort = async(filter = {}, sortBy, sortDirection, pageSize, pageNumber) => {
     return PostModel
-        .find(filter, { projection: { _id:0, comments:0, 'extendedLikesInfo.newestLikes': 3 }})
+        .find(filter, { projection: { _id:0, comments:0}})
         .sort({[sortBy!]: sortDirection})
         .skip(pageSize * pageNumber - pageSize)
         .limit(pageSize)
