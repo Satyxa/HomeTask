@@ -50,7 +50,6 @@ usersRouter.delete('/:id',checkAuth, async(req: Request, res: Response) => {
   try {
     const id = req.params.id
     const result = await UserModel.deleteOne({id})
-    console.log(result)
     if(result.deletedCount === 1) return res.sendStatus(204)
     else return res.sendStatus(404)
   } catch (err){
