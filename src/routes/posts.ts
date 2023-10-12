@@ -119,8 +119,14 @@ postsRouter.get('/', async (req: Request, res: Response) => {
                             }
                             return ac
                         }, 'None'),
-                        newestLikes: post.extendedLikesInfo.newestLikes.forEach((el, i) => {
-                            if(i < 3) return el })
+                        newestLikes: post.extendedLikesInfo.newestLikes.filter((el, i) => {
+                            console.log(i)
+                            if(i < 3) {
+                                console.log(i)
+                                console.log(el)
+                                return el
+                            }
+                        })
                     }
                 }
             })
@@ -138,6 +144,7 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
     try {
         let {foundPost}: postT = await DB_Utils.findPost(req, res)
         if (!foundPost) return res.sendStatus(404)
+        console.log(1)
 
         let userId = ''
 
@@ -163,8 +170,13 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
                     }
                     return ac
                 }, 'None'),
-                newestLikes: foundPost.extendedLikesInfo.newestLikes.forEach((el, i) => {
-                    if (i < 3) return el
+                newestLikes: foundPost.extendedLikesInfo.newestLikes.filter((el, i) => {
+                    console.log(i)
+                    if(i < 3) {
+                        console.log(i)
+                        console.log(el)
+                        return el
+                    }
                 })
             }
         }
