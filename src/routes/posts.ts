@@ -95,7 +95,6 @@ postsRouter.get('/', async (req: Request, res: Response) => {
         const pagesCount = Math.ceil(totalCount / pageSize)
 
         const posts = await postPagAndSort({}, sortBy, sortDirection, pageSize, pageNumber)
-        console.log(posts)
         let userId = ''
         if(req.headers.authorization) {
             const accessToken = req.headers.authorization.split(' ')[1]
@@ -120,12 +119,8 @@ postsRouter.get('/', async (req: Request, res: Response) => {
                             return ac
                         }, 'None'),
                         newestLikes: post.extendedLikesInfo.newestLikes.filter((el, i) => {
-                            console.log(i)
-                            if(i < 3) {
-                                console.log(i)
-                                console.log(el)
-                                return el
-                            }
+                            delete el._id
+                            if(i < 3) return el
                         })
                     }
                 }
@@ -144,7 +139,6 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
     try {
         let {foundPost}: postT = await DB_Utils.findPost(req, res)
         if (!foundPost) return res.sendStatus(404)
-        console.log(1)
 
         let userId = ''
 
@@ -171,12 +165,8 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
                     return ac
                 }, 'None'),
                 newestLikes: foundPost.extendedLikesInfo.newestLikes.filter((el, i) => {
-                    console.log(i)
-                    if(i < 3) {
-                        console.log(i)
-                        console.log(el)
-                        return el
-                    }
+                    delete el._id
+                    if(i < 3) return el
                 })
             }
         }
