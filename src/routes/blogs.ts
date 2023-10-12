@@ -50,7 +50,6 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
                         return ac
                     }, 'None'),
                     newestLikes: post.extendedLikesInfo.newestLikes.filter((el, i) => {
-                        delete el._id
                         if (i < 3) return el
                     }
         )

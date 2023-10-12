@@ -119,7 +119,6 @@ postsRouter.get('/', async (req: Request, res: Response) => {
                             return ac
                         }, 'None'),
                         newestLikes: post.extendedLikesInfo.newestLikes.filter((el, i) => {
-                            delete el._id
                             if(i < 3) return el
                         })
                     }
@@ -165,7 +164,6 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
                     return ac
                 }, 'None'),
                 newestLikes: foundPost.extendedLikesInfo.newestLikes.filter((el, i) => {
-                    delete el._id
                     if(i < 3) return el
                 })
             }
