@@ -50,8 +50,13 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
                         return ac
                     }, 'None'),
                     newestLikes: post.extendedLikesInfo.newestLikes.map((el, i) => {
-                        const {_id, ...res} = el
-                        if(i < 3) return res;
+                        if(i < 3) {
+                            return {
+                                userId: el.userId,
+                                addedAt: el.addedAt,
+                                login: el.login
+                            };
+                        }
                         return
                     }).splice(0, 3)
                 }
