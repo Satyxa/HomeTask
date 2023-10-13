@@ -168,12 +168,11 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
                     }
                     return ac
                 }, 'None'),
-                newestLikes: foundPost.extendedLikesInfo.newestLikes.filter((el, i) => {
+                newestLikes: foundPost.extendedLikesInfo.newestLikes.map((el, i) => {
                     const {_id, ...res} = el
-                    console.log(res)
                     if(i < 3) return res;
-                    else return
-                })
+                    return
+                }).splice(0, 3)
             }
         }
 
