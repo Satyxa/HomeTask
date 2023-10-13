@@ -119,7 +119,10 @@ postsRouter.get('/', async (req: Request, res: Response) => {
                             return ac
                         }, 'None'),
                         newestLikes: post.extendedLikesInfo.newestLikes.filter((el, i) => {
-                            if(i < 3) return el
+                           const {_id, ...res} = el
+                            console.log(res)
+                            if(i < 3) return res;
+                            else return
                         })
                     }
                 }
