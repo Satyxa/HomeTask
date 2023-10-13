@@ -101,6 +101,12 @@ postsRouter.get('/', async (req: Request, res: Response) => {
             userId = getUserIdByToken(accessToken)
         }
             const viewPosts = posts.map(post => {
+                console.log(1111111111)
+                const newestLikes = post.extendedLikesInfo.newestLikes.map((el, i) => {
+                    const {_id, ...res} = el
+                    if(i < 3) return res;
+                    return
+                })
                 return {
                     id: post.id,
                     title: post.title,
@@ -118,15 +124,11 @@ postsRouter.get('/', async (req: Request, res: Response) => {
                             }
                             return ac
                         }, 'None'),
-                        newestLikes: post.extendedLikesInfo.newestLikes.filter((el, i) => {
-                           const {_id, ...res} = el
-                            console.log(res)
-                            if(i < 3) return res;
-                            else return
-                        })
+                        newestLikes: newestLikes.splice(0, 3)
                     }
                 }
             })
+
             return res.status(200).send({
                 pagesCount, page: pageNumber,
                 pageSize, totalCount, items: viewPosts})

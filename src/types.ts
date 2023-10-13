@@ -1,3 +1,5 @@
+import { ObjectId } from "mongoose"
+
 export type userT = {
     id: string
     email: string
@@ -90,6 +92,7 @@ export type extendedLikesInfoT = {
 }
 
 export type newestLikesT = {
+    _id: ObjectId,
     addedAt: string,
     userId: string,
     login: string

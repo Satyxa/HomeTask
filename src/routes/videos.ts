@@ -7,7 +7,7 @@ import {DB_Utils} from "../DB-utils";
 export const videosRouter = Router({})
 
 videosRouter.get('/', async (req: Request, res: Response) => {
-  const videos = await VideoModel.find({}).toArray()
+  const videos = await VideoModel.find({}).lean()
   res.status(200).send(videos)
 })
 
