@@ -165,44 +165,43 @@ const postsController = {
         const login = user.AccountData.username
         const newestLike: newestLikesT = DB_Utils.createNewestLike(req.userId!, login)
 
-        const filterForUpdate = {id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}}
-
-        const likesCount = 'extendedLikesInfo.likesCount'
-        const dislikesCount = 'extendedLikesInfo.dislikesCount'
-        const newestLikes = 'extendedLikesInfo.newestLikes'
-
         const updateNewestLikes = {$each: [newestLike], $position: 0}
-        const pullReaction = {reactions: {userId: userLikeStatus.userId}}
         const setReaction = {reactions: reaction}
 
         if(!userLikeStatus){
             if(likeStatus === 'Like'){
                 await PostModel.updateOne({id}, {
-                    $push: {setReaction, newestLikes: updateNewestLikes},
-                    $inc: {likesCount: 1}
+                    $push: {setReaction, 'extendedLikesInfo.newestLikes': updateNewestLikes},
+                    $inc: {'extendedLikesInfo.likesCount': 1}
                     })
             } else {
                 await PostModel.updateOne({id}, {
                     $push: setReaction,
-                    $inc: {dislikesCount: 1}
+                    $inc: {'extendedLikesInfo.dislikesCount': 1}
                 })
             }
             return res.sendStatus(204)
         }
+
         if(userLikeStatus){
+            const pullReaction = {reactions: {userId: userLikeStatus.userId}}
+            const findByUserId = {userId: userLikeStatus.userId}
+            const filterForUpdate = {id, reactions: {$elemMatch: findByUserId}}
             if(userLikeStatus.status === 'Like'){
                 if(likeStatus === 'Dislike'){
                     await PostModel.updateOne(filterForUpdate,
                         {
                             $set: setReaction,
-                            $pull: {newestLikes: {userId: userLikeStatus.userId}},
-                            $inc: {likesCount: -1, dislikesCount: 1}
+                            $pull: {'extendedLikesInfo.newestLikes': findByUserId},
+                            $inc: {
+                                'extendedLikesInfo.likesCount': -1,
+                                'extendedLikesInfo.dislikesCount': 1}
                         })
                 } else {
                     await PostModel.updateOne(filterForUpdate,
                         {
-                            $pull: pullReaction,
-                            $inc: {likesCount: -1}
+                            $pull: {pullReaction, 'extendedLikesInfo.newestLikes': findByUserId},
+                            $inc: {'extendedLikesInfo.likesCount': -1}
                         })
                 }
             }
@@ -211,15 +210,17 @@ const postsController = {
                 if(likeStatus === 'Like'){
                     await PostModel.updateOne(filterForUpdate,
                         {
-                            $push: {newestLikes: updateNewestLikes},
+                            $push: {'extendedLikesInfo.newestLikes': updateNewestLikes},
                             $set: setReaction,
-                            $inc: {likesCount: 1, dislikesCount: -1}
+                            $inc: {
+                                'extendedLikesInfo.likesCount': 1,
+                                'extendedLikesInfo.dislikesCount': -1}
                         })
                 } else {
                     await PostModel.updateOne(filterForUpdate,
                         {
                             $pull: pullReaction,
-                            $inc: {dislikesCount: -1}
+                            $inc: {'extendedLikesInfo.dislikesCount': -1}
                         })
                 }
             }
