@@ -143,9 +143,9 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 postsRouter.get('/:id', async (req: Request, res: Response) => {
     try {
         // @ts-ignore
-        let foundPost: postT | null = await DB_Utils.findPost(req, res)
+        let {foundPost}: postT | null = await DB_Utils.findPost(req, res)
         if (!foundPost) return res.sendStatus(404)
-
+        console.log(foundPost)
         let userId = ''
 
         if(req.headers.authorization){
@@ -271,9 +271,11 @@ postsRouter.put('/:id/like-status', AuthMiddleware, ...isLikeStatusCorrect, chec
             if(likeStatus === 'Dislike'){
                 await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
                     {$set: {reactions: reaction}, $inc: {'extendedLikesInfo.likesCount': -1, 'extendedLikesInfo.dislikesCount': 1}})
-            } else {
+                return res.sendStatus(204)
+            } else if( likeStatus === 'None') {
                 await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
                     {$pull: {reactions: {userId: userLikeStatus.userId}}, $inc: {'extendedLikesInfo.likesCount': -1}})
+                return res.sendStatus(204)
             }
         }
 
@@ -282,9 +284,11 @@ postsRouter.put('/:id/like-status', AuthMiddleware, ...isLikeStatusCorrect, chec
                 await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
                 {$push: {'extendedLikesInfo.newestLikes': {$each: [newestLike], $position: 0}},
                 $set: {reactions: reaction}, $inc: {'extendedLikesInfo.likesCount': 1, 'extendedLikesInfo.dislikesCount': -1}})
-            } else {
+                return res.sendStatus(204)
+            } else if( likeStatus === 'None') {
                 await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
                     {$pull: {reactions: {userId: userLikeStatus.userId}}, $inc: {'extendedLikesInfo.dislikesCount': -1}})
+                return res.sendStatus(204)
             }
         }
     }
