@@ -102,7 +102,6 @@ postsRouter.get('/', async (req: Request, res: Response) => {
             userId = getUserIdByToken(accessToken)
         }
             const viewPosts = posts.map(post => {
-                console.log(1111111111)
                 const newestLikes = post.extendedLikesInfo.newestLikes.map((el, i) => {
                     const {_id, ...res} = el
                     if(i < 3) return res;
@@ -270,7 +269,9 @@ postsRouter.put('/:id/like-status', AuthMiddleware, ...isLikeStatusCorrect, chec
         if(userLikeStatus.status === 'Like'){
             if(likeStatus === 'Dislike'){
                 await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
-                    {$set: {reactions: reaction}, $inc: {'extendedLikesInfo.likesCount': -1, 'extendedLikesInfo.dislikesCount': 1}})
+                    {$pull: {'extendedLikesInfo.newestLikes': {userId: userLikeStatus.userId}}},
+                    {$set: {reactions: reaction},
+                        $inc: {'extendedLikesInfo.likesCount': -1, 'extendedLikesInfo.dislikesCount': 1}})
                 return res.sendStatus(204)
             } else if( likeStatus === 'None') {
                 await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
