@@ -92,7 +92,7 @@ export type extendedLikesInfoT = {
 }
 
 export type newestLikesT = {
-    _id: ObjectId,
+    _id?: ObjectId,
     addedAt: string,
     userId: string,
     login: string

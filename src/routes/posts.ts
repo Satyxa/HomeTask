@@ -14,7 +14,7 @@ import {
 } from "../validation";
 import {commentsPagAndSort, paginationSort, postPagAndSort} from "../PaginationAndSort";
 import {AuthMiddleware} from "../AuthMiddleware";
-import {Filter} from "mongodb";
+import {Filter, WithId} from "mongodb";
 import {DB_Utils} from "../DB-utils";
 import {getUserIdByToken} from "../authentication";
 
@@ -25,14 +25,14 @@ postsRouter.get('/:id/comments', async (req: Request, res: Response) => {
     try {
         const id = req.params.id
         const {pageNumber, pageSize, sortBy, sortDirection} = await paginationSort(req)
-        const filter: Filter<commentsT> = {postId: id}
+        const filter = {postId: id}
         const totalCount = await CommentModel.countDocuments(filter)
         const pagesCount = Math.ceil(totalCount / pageSize)
 
         if (!await PostModel.findOne({id}))return res.sendStatus(404)
 
         const comments = await commentsPagAndSort(filter, sortBy, sortDirection, pageSize, pageNumber)
-        let userId;
+        let userId: string = '';
         if(req.headers.authorization){
             const accessToken = req.headers.authorization.split(' ')[1]
             userId = getUserIdByToken(accessToken)
@@ -74,6 +74,7 @@ postsRouter.post('/:id/comments',AuthMiddleware, ...commentValidator, checkValid
         const content: string = req.body.content
 
         if(!await PostModel.findOne({id})) return res.sendStatus(404)
+        // @ts-ignore
         const user = await UserModel.findOne({id: req.userId!})
         if(!user)return res.sendStatus(404)
 
@@ -141,7 +142,8 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 
 postsRouter.get('/:id', async (req: Request, res: Response) => {
     try {
-        let {foundPost}: postT = await DB_Utils.findPost(req, res)
+        // @ts-ignore
+        let foundPost: postT | null = await DB_Utils.findPost(req, res)
         if (!foundPost) return res.sendStatus(404)
 
         let userId = ''
@@ -162,13 +164,14 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
             extendedLikesInfo: {
                 likesCount: foundPost.extendedLikesInfo.likesCount,
                 dislikesCount: foundPost.extendedLikesInfo.dislikesCount,
-                myStatus: foundPost.reactions.reduce((ac, r) => {
+                myStatus: foundPost.reactions.reduce((ac: string, r: reactionsT) => {
                     if (r.userId === userId) {
                         return ac = r.status
                     }
                     return ac
                 }, 'None'),
-                newestLikes: foundPost.extendedLikesInfo.newestLikes.map((el, i) => {
+                // @ts-ignore
+                newestLikes: foundPost.extendedLikesInfo.newestLikes.map((el: newestLikesT, i: IDBIndexParameters) => {
                     if(i < 3) {
                         return {
                             userId: el.userId,
@@ -192,13 +195,16 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
 postsRouter.post('/', checkAuth, ...postCreateValidation, ...blogIdValidation, checkValidation, async (req: Request, res: Response) => {
     try {
         const {title, shortDescription, content, blogId} = req.body
-        const blog: blogsT = await BlogModel.findOne({id: blogId})
+        const blog: blogsT | null = await BlogModel.findOne({id: blogId})
         if(!blog) return res.sendStatus(404)
         const newPost: postT = DB_Utils.createPost(title, shortDescription, content, blogId, blog.name)
 
         await PostModel.create({...newPost})
+        // @ts-ignore
         delete newPost.comments
+        // @ts-ignore
         delete newPost.reactions
+
         return res.status(201).send(newPost)
     } catch (err){
         console.log(err, `=> create post "/" postsRouter`)
@@ -233,17 +239,21 @@ postsRouter.put('/:id/like-status', AuthMiddleware, ...isLikeStatusCorrect, chec
     const {id} = req.params
     const {likeStatus} = req.body
     if(!id) return res.sendStatus(400)
-    const post: postT = await PostModel.findOne({id}).lean()
+    const post: postT | null = await PostModel.findOne({id}).lean()
     if(!post) return res.sendStatus(404)
 
-    const userLikeStatus = post.reactions.filter(reaction => reaction.userId === req.userId)[0]
+    // @ts-ignore
+    const userLikeStatus = post.reactions.filter(reaction => reaction.userId === req.userId!)[0]
+    // @ts-ignore
     const reaction: reactionsT = DB_Utils.createReaction(req.userId, likeStatus)
     if(!userLikeStatus && likeStatus === 'None') return res.sendStatus(204)
     if(userLikeStatus && userLikeStatus.status === likeStatus) return res.sendStatus(204)
 
-    const user: UserAccountDBType = await UserModel.findOne({id: req.userId}).lean()
+    // @ts-ignore
+    const user: UserAccountDBType = await UserModel.findOne({id: req.userId!}).lean()
     const login = user.AccountData.username
-    const newestLike: newestLikesT = DB_Utils.createNewestLike(req.userId, login)
+    // @ts-ignore
+    const newestLike: newestLikesT = DB_Utils.createNewestLike(req.userId!, login)
     if(!userLikeStatus){
         if(likeStatus === 'Like'){
             await PostModel.updateOne({id}, {$push: {reactions: reaction,
