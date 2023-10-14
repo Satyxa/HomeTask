@@ -122,7 +122,7 @@ export const DB_Utils = {
                 dislikesCount: post.extendedLikesInfo.dislikesCount,
                 myStatus: post.reactions.reduce((ac: string, r: reactionsT) => {
                     if (r.userId === userId) {
-                        return ac = r.status
+                        return r.status
                     }
                     return ac
                 }, 'None'),
