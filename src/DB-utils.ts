@@ -138,6 +138,25 @@ export const DB_Utils = {
                 }).splice(0, 3)
             }
         }
-    }
+    },
+    createViewComment: (comment: commentsT, userId: string) => {
+        return {
+            id: comment.id,
+            content: comment.content,
+            createdAt: comment.createdAt,
+            commentatorInfo: comment.commentatorInfo,
+            likesInfo: {
+                likesCount: comment.likesInfo.likesCount,
+                dislikesCount: comment.likesInfo.dislikesCount,
+                myStatus: comment.reactions.reduce((ac, r)=>{
+                    if(r.userId == userId) {
+                        ac = r.status;
+                        return ac
+                    }
+                    return ac
+                }, 'None')
+            }
+        }
+}
 
 }
