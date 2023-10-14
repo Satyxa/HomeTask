@@ -2,7 +2,7 @@ import {NextFunction, Request, Response, Router} from "express";
 import {UserModel} from "../db/UserModel";
 import {UserAccountDBType, userT} from "../types";
 import {createUser} from "../authentication";
-import {Filter} from "mongodb";
+import {FilterQuery} from "mongoose";
 import {paginationSort, usersPagAndSort} from "../PaginationAndSort";
 import {checkAuth, checkValidation, usersValidation} from "../validation";
 
@@ -11,7 +11,7 @@ export const usersRouter = Router({})
 usersRouter.get('/',async (req: Request, res: Response) => {
   try {
     const {pageNumber, pageSize, sortBy, searchLoginTerm, searchEmailTerm, sortDirection} = await paginationSort(req)
-    const filter: Filter<userT> = {$or: [{'AccountData.username': {$regex: searchLoginTerm ?? '', $options: 'i'}}, {'AccountData.email': {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
+    const filter: FilterQuery<userT> = {$or: [{'AccountData.username': {$regex: searchLoginTerm ?? '', $options: 'i'}}, {'AccountData.email': {$regex: searchEmailTerm ?? '', $options: 'i'}}]}
     const totalCount = await UserModel.countDocuments(filter)
     const pagesCount = Math.ceil(totalCount / pageSize)
 

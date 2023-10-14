@@ -47,7 +47,7 @@ loginRouter.post('/login', rateLimiter, async (req: Request, res: Response) => {
 
             const token = await createToken(foundUser.id, deviceId, ip,'10h')
             const RefreshToken = await createToken(foundUser.id, deviceId,ip, '20h')
-            const {iat} = jwt.verify(token, secretKey)
+            const {iat} = jwt.decode(token) as {iat: number}
 
             const newDevice = {
                 ip,
@@ -79,9 +79,10 @@ loginRouter.post('/refresh-token', async (req: Request, res: Response) => {
         const AccessToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'10h')
         const newRefreshToken = await createToken(resultToken.userId, resultToken.deviceId, resultToken.ip,'20h')
 
-        const {iat}: number = jwt.verify(newRefreshToken, secretKey)
+        const {iat} = jwt.decode(newRefreshToken) as {iat: number}
         const sessions = [...user.sessions]
         const sessionForUpdate = sessions.find(s => s.deviceId === resultToken.deviceId)
+        if(!sessionForUpdate) return res.sendStatus(401)
         sessionForUpdate.lastActiveDate =  new Date(iat * 1000).toISOString()
         await UserModel.updateOne({'id': resultToken.userId}, {$set: {sessions}})
         res.cookie('refreshToken', newRefreshToken, {httpOnly: true,secure: true})
@@ -98,8 +99,10 @@ loginRouter.post('/logout', async (req:Request, res: Response) => {
         if (!refreshToken) return res.sendStatus(401)
         if(!getResultByToken(refreshToken))  return res.sendStatus(401)
 
-        const {userId, deviceId}: string = getResultByToken(refreshToken)
-        if(!userId)return res.sendStatus(401)
+       const tokenPayload = getResultByToken(refreshToken)
+        if(!tokenPayload)return res.sendStatus(401)
+
+        const {userId, deviceId} = tokenPayload
 
         const result = await UserModel.updateOne({id: userId},
             {$pull: {sessions: {deviceId}}})

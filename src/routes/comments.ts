@@ -6,6 +6,7 @@ import {DB_Utils} from "../DB-utils";
 import {commentsT, reactionsT} from "../types";
 import {ModifyResult} from "mongodb";
 import {getUserIdByToken} from "../authentication";
+import {UpdateWriteOpResult } from 'mongoose'
 
 
 export const commentsRouter = Router({})
@@ -14,7 +15,7 @@ export const commentsRouter = Router({})
 commentsRouter.get('/:id', async (req: Request, res: Response) => {
     try {
         const id = req.params.id
-        const comment: commentsT = await CommentModel.findOne({id}, {projection: {_id: 0, postId: 0, reactions: 0}}).lean()
+        const comment: commentsT | null = await CommentModel.findOne({id}, {projection: {_id: 0, postId: 0, reactions: 0}}).lean()
         if(!comment) return res.sendStatus(404)
         let userId:string;
         if(req.headers.authorization){
@@ -46,11 +47,11 @@ commentsRouter.put('/:id', commentValidator,AuthMiddleware, async(req:Request, r
         const resultValidation = getResultValidation(req)
         if (resultValidation !== 1) return res.status(400).send({errorsMessages: resultValidation})
         const id = req.params.id
-        const comment: commentsT = await CommentModel.findOne({id})
+        const comment: commentsT| null = await CommentModel.findOne({id})
         if (!comment) return res.sendStatus(404)
         if (req.userId !== comment.commentatorInfo.userId)return res.sendStatus(403)
         const content = req.body.content
-        const result: ModifyResult = await CommentModel
+        const result: UpdateWriteOpResult = await CommentModel
             .updateOne({id},
                 {$set: {content}})
         if(result.matchedCount === 1)return res.sendStatus(204)
@@ -66,10 +67,10 @@ commentsRouter.put('/:commentId/like-status', AuthMiddleware, ...isLikeStatusCor
     try {
         const commentId = req.params.commentId
         const {likeStatus} = req.body
-        if(!await CommentModel.findOne({id: commentId})) return res.sendStatus(404)
         const comment = await CommentModel.findOne({id: commentId}).lean()
-        const reaction = DB_Utils.createReaction(req.userId, likeStatus)
-        const commentCopy:commentsT = await CommentModel.findOne({id: commentId})
+        if(!comment) return res.sendStatus(404)
+        const reaction = DB_Utils.createReaction(req.userId!, likeStatus)
+        const commentCopy = {...comment}
         const userLikeStatus = commentCopy.reactions.filter(reaction => reaction.userId === req.userId)[0]
         console.log('reaction', userLikeStatus)
         if(!userLikeStatus && likeStatus !== 'None'){
@@ -116,7 +117,7 @@ commentsRouter.put('/:commentId/like-status', AuthMiddleware, ...isLikeStatusCor
 commentsRouter.delete('/:id', AuthMiddleware, async (req: Request, res: Response) => {
     try {
         const id = req.params.id
-        const comment: commentsT = await CommentModel.findOne({id})
+        const comment: commentsT | null = await CommentModel.findOne({id})
         if (!comment) return res.sendStatus(404)
         if (req.userId !== comment.commentatorInfo.userId)return res.sendStatus(403)
         const result = await CommentModel.deleteOne({id})

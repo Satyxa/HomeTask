@@ -28,7 +28,7 @@ export const createUser = async (login: string, email: string, password: string)
     }
 }
 
-export const createToken = async (id: string, deviceId, ip, exp) => {
+export const createToken = async (id: string, deviceId: string, ip: string, exp: string) => {
     return jwt.sign({userId: id, ip, deviceId}, secretKey, {expiresIn: exp})
 
 }
@@ -43,10 +43,9 @@ export const getUserIdByToken = (token: string) => {
     }
 }
 
-export const getResultByToken = (refreshToken) => {
+export const getResultByToken = (refreshToken: string) : {userId: string, deviceId: string, iat: number} | null => {
     try {
-        const result =  jwt.verify(refreshToken, secretKey)
-        console.log(result + "прописать тип для result token")
+        const result =  jwt.verify(refreshToken, secretKey) as {userId: string, deviceId: string, iat: number}
         return result
     } catch (err){
         console.log(err, `=> getResultByToken (file authentication)`)

@@ -1,7 +1,7 @@
 import {PostModel} from "./db/PostModel";
 import {BlogModel} from "./db/BlogModel";
 import {Request, Response} from "express";
-import {commentsT, extendedLikesInfoT, postT} from "./types";
+import {commentsT, extendedLikesInfoT, postT, UserAccountDBType} from "./types";
 import * as uuid from "uuid";
 
 export const DB_Utils = {
@@ -17,7 +17,8 @@ export const DB_Utils = {
         return {id, foundPost}
     },
 
-    createNewVideo: (newVideoId, title, author, dateNow, availableResolutions) => {
+    createNewVideo: (newVideoId: number, title: string, author: string, dateNow: Date,
+                     availableResolutions: ["P144" | "P240" | "P360" | "P480" | "P720" | "P1080" | "P1440" | "P2160"]) => {
         return {
             id: newVideoId,
             title,
@@ -30,7 +31,8 @@ export const DB_Utils = {
         }
     },
 
-    updateVideo: (title, author,minAgeRestriction, availableResolutions, publicationDate, canBeDownloaded) => {
+    updateVideo: (title: string, author: string,minAgeRestriction: number,
+                  availableResolutions: string[], publicationDate: string, canBeDownloaded: boolean) => {
         return {
             title: title as string,
             author: author as string,
@@ -41,7 +43,8 @@ export const DB_Utils = {
         }
     },
 
-    createPost: (title, shortDescription, content, blogId, blogName): postT => {
+    createPost: (title: string, shortDescription: string,
+                 content: string, blogId: string, blogName: string): postT => {
         return {
             id: uuid.v4(),
             title,
@@ -61,7 +64,7 @@ export const DB_Utils = {
         }
     },
 
-    createComment: (id, content, user) => {
+    createComment: (id: string, content: string, user: UserAccountDBType) => {
         const comment: commentsT = {
             id: uuid.v4(),
             postId: id,
@@ -91,14 +94,14 @@ export const DB_Utils = {
         }
         return {viewComment, comment}
     },
-    createReaction: (userId, status) => {
+    createReaction: (userId: string, status: string) => {
         return {
             userId,
             status,
             createdAt: new Date().toISOString()
         }
     },
-    createNewestLike: (userId, login) => {
+    createNewestLike: (userId: string, login: string) => {
         return {
             userId,
             login,

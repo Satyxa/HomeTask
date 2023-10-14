@@ -74,8 +74,7 @@ postsRouter.post('/:id/comments',AuthMiddleware, ...commentValidator, checkValid
         const content: string = req.body.content
 
         if(!await PostModel.findOne({id})) return res.sendStatus(404)
-        // @ts-ignore
-        const user = await UserModel.findOne({id: req.userId!})
+        const user: UserAccountDBType | null = await UserModel.findOne({id: req.userId!})
         if(!user)return res.sendStatus(404)
 
         const {comment, viewComment} = DB_Utils.createComment(id, content, user)
@@ -170,7 +169,7 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
                     return ac
                 }, 'None'),
                 // @ts-ignore
-                newestLikes: foundPost.extendedLikesInfo.newestLikes.map((el: newestLikesT, i: IDBIndexParameters) => {
+                newestLikes: foundPost.extendedLikesInfo.newestLikes.map((el: newestLikesT, i: number) => {
                     if(i < 3) {
                         return {
                             userId: el.userId,
@@ -199,12 +198,9 @@ postsRouter.post('/', checkAuth, ...postCreateValidation, ...blogIdValidation, c
         const newPost: postT = DB_Utils.createPost(title, shortDescription, content, blogId, blog.name)
 
         await PostModel.create({...newPost})
-        // @ts-ignore
-        delete newPost.comments
-        // @ts-ignore
-        delete newPost.reactions
+        const {comments, reactions, ...post} = newPost
 
-        return res.status(201).send(newPost)
+        return res.status(201).send(post)
     } catch (err){
         console.log(err, `=> create post "/" postsRouter`)
         return res.sendStatus(500)

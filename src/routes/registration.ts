@@ -14,12 +14,12 @@ registrationRouter.post('/registration', rateLimiter, ...registerValidation, che
         if(!email || !login || !password) return res.sendStatus(401)
         const newUser: UserAccountDBType = await createUser(login, email, password)
         await UserModel.create({...newUser})
-        await emailAdapter.sendEmail(newUser.AccountData.email, 'Confirm your email', `<h1>Thank for your registration</h1>
+        const result = await emailAdapter.sendEmail(newUser.AccountData.email, 'Confirm your email', `<h1>Thank for your registration</h1>
     <p>To finish registration please follow the link below:
         <a href=https://somesite.com/confirm-email?code=${newUser.EmailConfirmation.confirmationCode}'>complete registration</a>
-    </p>`, res)
+    </p>`)
 
-        return res.status(204)
+        if(result === 1) return res.sendStatus(204)
     } catch (err){
         console.log(err, `=> post "/registration" registrationRouter`)
         return res.sendStatus(401)

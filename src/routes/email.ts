@@ -37,7 +37,8 @@ emailRouter.post('/registration-confirmation',rateLimiter, async (req: Request, 
 emailRouter.post('/', async (req: Request, res: Response) => {
     try {
         const {email, subject, message} = req.body
-        await emailAdapter.sendEmail(email, subject, message, res)
+        const result = await emailAdapter.sendEmail(email, subject, message)
+        if(result === 1) return res.sendStatus(204)
     } catch (err) {
         console.log(err, `=> post "/" emailRouter`)
         return null
@@ -52,16 +53,15 @@ registrationRouter.post('/registration-email-resending',rateLimiter, ...emailRes
         if(!user) return res.sendStatus(400)
         else if(user.EmailConfirmation.isConfirmed) return res.sendStatus(400)
 
-        const userWithUpdatedCode: ModifyResult<UserAccountDBType> = await UserModel.findOneAndUpdate(
-            {'AccountData.email': email},
-            {$set: {'EmailConfirmation.confirmationCode': uuid.v4()}}, {returnDocument: 'after'})
-
-        const newCode = userWithUpdatedCode.value!.EmailConfirmation.confirmationCode
+        const newCode = uuid.v4()
+        user.EmailConfirmation.confirmationCode = newCode
+        await UserModel.updateOne({'AccountData.email': email}, {...user})
         const message = `<h1>Thank for your registration</h1>
     <p>To finish registration please follow the link below:
         <a href=https://somesite.com/confirm-email?code=${newCode}>complete registration</a>
     </p>`
-        await emailAdapter.sendEmail(email, 'email confirmation', message, res)
+        const result = await emailAdapter.sendEmail(email, 'email confirmation', message)
+        if(result === 1) return res.sendStatus(204)
     } catch (err) {
         console.log(err, `=> post "/registration-email-resending" emailRouter`)
         return null
@@ -81,7 +81,8 @@ emailRouter.post('/password-recovery', rateLimiter, ...isEmailCorrect, checkVali
        <p>To finish password recovery please follow the link below:
           <a href=https://somesite.com/password-recovery?recoveryCode=${recoveryCode}>recovery password</a>
       </p>`
-            await emailAdapter.sendEmail(email, subject, message, res)
+            const result = await emailAdapter.sendEmail(email, subject, message)
+            if(result === 1) return res.sendStatus(204)
         }
     } catch (err) {
         console.log(err, `=> post "/password-recovery" emailRouter`)

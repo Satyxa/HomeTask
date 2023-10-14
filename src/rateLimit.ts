@@ -1,7 +1,8 @@
 import {RateLimitModel} from "./db/rateLimitModel";
 import {addSeconds} from "date-fns";
+import {Request, Response, NextFunction} from 'express'
 
-export const rateLimiter = async (req, res, next) => {
+export const rateLimiter = async (req:Request, res: Response, next: NextFunction) => {
     const ip = req.ip
     const timeNow = new Date()
     const url = req.originalUrl

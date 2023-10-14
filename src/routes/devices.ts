@@ -21,7 +21,9 @@ devicesRouter.delete('/', AuthMiddleware, async (req: Request, res: Response) =>
     try {
         const refreshToken = req.cookies.refreshToken
         if(!getResultByToken(refreshToken)) return res.sendStatus(401)
-        const {deviceId} = getResultByToken(refreshToken)
+        const tokenPayload = getResultByToken(refreshToken)
+        if(!tokenPayload) return res.sendStatus(401)
+        const {deviceId} = tokenPayload
         const result = await UserModel.updateOne({id: req.userId},{$pull: {sessions: {deviceId: {$ne: deviceId}}}})
         if(result.matchedCount >= 1) return res.sendStatus(204)
         else return res.sendStatus(400)

@@ -3,7 +3,7 @@ import {BlogModel} from "../db/BlogModel";
 import {PostModel} from "../db/PostModel";
 import {postT, blogsT} from '../types'
 import * as uuid from 'uuid'
-import {Filter} from "mongodb";
+import {FilterQuery} from "mongoose";
 import {blogsCreateValidation, postCreateValidation, checkAuth,
     checkValidation
 } from "../validation";
@@ -76,7 +76,7 @@ blogsRouter.get('/:id/posts', async(req: Request, res: Response) => {
 blogsRouter.get('/', async(req: Request, res: Response) => {
     try {
         const {pageNumber, pageSize, sortBy, searchNameTerm, sortDirection} = await paginationSort(req)
-        const filter: Filter<blogsT> = {name: {$regex: searchNameTerm ?? '', $options: 'i'}}
+        const filter: FilterQuery<blogsT> = {name: {$regex: searchNameTerm ?? '', $options: 'i'}}
         const totalCount = await BlogModel.countDocuments(filter)
         const pagesCount = Math.ceil(totalCount / pageSize)
 
@@ -121,8 +121,8 @@ blogsRouter.post('/:id/posts',checkAuth,...postCreateValidation, checkValidation
             }
         }
         await PostModel.create({...newPost})
-        delete newPost.comments
-        res.status(201).send(newPost)
+        const {comments, ...post} = newPost
+        res.status(201).send(post)
     } catch (err){
         console.log(err, `=> create new post for blog by id "/:id/posts" blogsRouter`)
         return res.sendStatus(500)
