@@ -1,9 +1,9 @@
 import {PostModel} from "./db/PostModel";
 import {BlogModel} from "./db/BlogModel";
 import {Request, Response} from "express";
-import {commentsT, extendedLikesInfoT, postT, UserAccountDBType} from "./types";
+import {commentsT, extendedLikesInfoT, postT, UserAccountDBType, reactionsT, newestLikesT} from "./types";
 import * as uuid from "uuid";
-
+import {WithId} from 'mongodb'
 export const DB_Utils = {
     findBlog: async(req: Request, res: Response) => {
         const {id} = req.params
@@ -107,5 +107,37 @@ export const DB_Utils = {
             login,
             addedAt: new Date().toISOString()
         }
+    },
+    createViewPost: (post: postT, userId: string) => {
+        return {
+            id: post.id,
+            title: post.title,
+            shortDescription: post.shortDescription,
+            content: post.content,
+            blogId: post.blogId,
+            blogName: post.blogName,
+            createdAt: post.createdAt,
+            extendedLikesInfo: {
+                likesCount: post.extendedLikesInfo.likesCount,
+                dislikesCount: post.extendedLikesInfo.dislikesCount,
+                myStatus: post.reactions.reduce((ac: string, r: reactionsT) => {
+                    if (r.userId === userId) {
+                        return ac = r.status
+                    }
+                    return ac
+                }, 'None'),
+                newestLikes: post.extendedLikesInfo.newestLikes.map((el: newestLikesT, i: number) => {
+                    if(i < 3) {
+                        return {
+                            userId: el.userId,
+                            addedAt: el.addedAt,
+                            login: el.login
+                        };
+                    }
+                    return
+                }).splice(0, 3)
+            }
+        }
     }
+
 }

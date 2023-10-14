@@ -24,4 +24,4 @@ export const UserSchema = new mongoose.Schema<WithId<UserAccountDBType>>({
     recoveryCode: String
 })
 
-export const UserModel = mongoose.model<WithId<UserAccountDBType>>('users', UserSchema)
+export const UserModel = mongoose.model<WithId<UserAccountDBType>>('users', UserSchema);

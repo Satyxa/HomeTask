@@ -101,31 +101,7 @@ postsRouter.get('/', async (req: Request, res: Response) => {
             userId = getUserIdByToken(accessToken)
         }
             const viewPosts = posts.map(post => {
-                const newestLikes = post.extendedLikesInfo.newestLikes.map((el, i) => {
-                    const {_id, ...res} = el
-                    if(i < 3) return res;
-                    return
-                })
-                return {
-                    id: post.id,
-                    title: post.title,
-                    shortDescription: post.shortDescription,
-                    content: post.content,
-                    blogId: post.blogId,
-                    blogName: post.blogName,
-                    createdAt: post.createdAt,
-                    extendedLikesInfo: {
-                        likesCount: post.extendedLikesInfo.likesCount,
-                        dislikesCount: post.extendedLikesInfo.dislikesCount,
-                        myStatus: post.reactions.reduce((ac, r) => {
-                            if(r.userId === userId){
-                                return ac = r.status
-                            }
-                            return ac
-                        }, 'None'),
-                        newestLikes: newestLikes.splice(0, 3)
-                    }
-                }
+                return DB_Utils.createViewPost(post, userId)
             })
 
             return res.status(200).send({
@@ -140,10 +116,8 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 
 postsRouter.get('/:id', async (req: Request, res: Response) => {
     try {
-        // @ts-ignore
-        let {foundPost}: postT | null = await DB_Utils.findPost(req, res)
+        let {foundPost} = await DB_Utils.findPost(req, res)
         if (!foundPost) return res.sendStatus(404)
-        console.log(foundPost)
         let userId = ''
 
         if(req.headers.authorization){
@@ -151,36 +125,7 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
             userId = getUserIdByToken(accessToken)
         }
 
-        const viewPost = {
-            id: foundPost.id,
-            title: foundPost.title,
-            shortDescription: foundPost.shortDescription,
-            content: foundPost.content,
-            blogId: foundPost.blogId,
-            blogName: foundPost.blogName,
-            createdAt: foundPost.createdAt,
-            extendedLikesInfo: {
-                likesCount: foundPost.extendedLikesInfo.likesCount,
-                dislikesCount: foundPost.extendedLikesInfo.dislikesCount,
-                myStatus: foundPost.reactions.reduce((ac: string, r: reactionsT) => {
-                    if (r.userId === userId) {
-                        return ac = r.status
-                    }
-                    return ac
-                }, 'None'),
-                // @ts-ignore
-                newestLikes: foundPost.extendedLikesInfo.newestLikes.map((el: newestLikesT, i: number) => {
-                    if(i < 3) {
-                        return {
-                            userId: el.userId,
-                            addedAt: el.addedAt,
-                            login: el.login
-                        };
-                    }
-                    return
-                }).splice(0, 3)
-            }
-        }
+        const viewPost = DB_Utils.createViewPost(foundPost, userId)
 
 
         return res.status(200).send(viewPost)
@@ -237,17 +182,15 @@ postsRouter.put('/:id/like-status', AuthMiddleware, ...isLikeStatusCorrect, chec
     const post: postT | null = await PostModel.findOne({id}).lean()
     if(!post) return res.sendStatus(404)
 
-    // @ts-ignore
     const userLikeStatus = post.reactions.filter(reaction => reaction.userId === req.userId!)[0]
-    // @ts-ignore
-    const reaction: reactionsT = DB_Utils.createReaction(req.userId, likeStatus)
+    const reaction: reactionsT = DB_Utils.createReaction(req.userId!, likeStatus)
     if(!userLikeStatus && likeStatus === 'None') return res.sendStatus(204)
     if(userLikeStatus && userLikeStatus.status === likeStatus) return res.sendStatus(204)
 
-    // @ts-ignore
-    const user: UserAccountDBType = await UserModel.findOne({id: req.userId!}).lean()
+    const user: UserAccountDBType | null = await UserModel.findOne({id: req.userId!}).lean()
+    if(!user) return res.sendStatus(401)
     const login = user.AccountData.username
-    // @ts-ignore
+
     const newestLike: newestLikesT = DB_Utils.createNewestLike(req.userId!, login)
     if(!userLikeStatus){
         if(likeStatus === 'Like'){

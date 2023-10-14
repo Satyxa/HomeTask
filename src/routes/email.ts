@@ -37,8 +37,8 @@ emailRouter.post('/registration-confirmation',rateLimiter, async (req: Request, 
 emailRouter.post('/', async (req: Request, res: Response) => {
     try {
         const {email, subject, message} = req.body
-        const result = await emailAdapter.sendEmail(email, subject, message)
-        if(result === 1) return res.sendStatus(204)
+        await emailAdapter.sendEmail(email, subject, message)
+        return res.sendStatus(204)
     } catch (err) {
         console.log(err, `=> post "/" emailRouter`)
         return null
@@ -60,8 +60,8 @@ registrationRouter.post('/registration-email-resending',rateLimiter, ...emailRes
     <p>To finish registration please follow the link below:
         <a href=https://somesite.com/confirm-email?code=${newCode}>complete registration</a>
     </p>`
-        const result = await emailAdapter.sendEmail(email, 'email confirmation', message)
-        if(result === 1) return res.sendStatus(204)
+        await emailAdapter.sendEmail(email, 'email confirmation', message)
+        return res.sendStatus(204)
     } catch (err) {
         console.log(err, `=> post "/registration-email-resending" emailRouter`)
         return null
@@ -81,8 +81,8 @@ emailRouter.post('/password-recovery', rateLimiter, ...isEmailCorrect, checkVali
        <p>To finish password recovery please follow the link below:
           <a href=https://somesite.com/password-recovery?recoveryCode=${recoveryCode}>recovery password</a>
       </p>`
-            const result = await emailAdapter.sendEmail(email, subject, message)
-            if(result === 1) return res.sendStatus(204)
+            await emailAdapter.sendEmail(email, subject, message)
+            return res.sendStatus(204)
         }
     } catch (err) {
         console.log(err, `=> post "/password-recovery" emailRouter`)

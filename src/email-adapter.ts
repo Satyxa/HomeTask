@@ -16,6 +16,5 @@ export const emailAdapter = {
             subject,
             html: message
         })
-        return 1
     },
 }
