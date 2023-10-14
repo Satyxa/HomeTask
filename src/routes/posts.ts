@@ -269,8 +269,7 @@ postsRouter.put('/:id/like-status', AuthMiddleware, ...isLikeStatusCorrect, chec
         if(userLikeStatus.status === 'Like'){
             if(likeStatus === 'Dislike'){
                 await PostModel.updateOne({id, reactions: {$elemMatch: {userId: userLikeStatus.userId}}},
-                    {$pull: {'extendedLikesInfo.newestLikes': {userId: userLikeStatus.userId}}},
-                    {$set: {reactions: reaction},
+                    {$set: {reactions: reaction}, $pull: {'extendedLikesInfo.newestLikes': {userId: userLikeStatus.userId}},
                         $inc: {'extendedLikesInfo.likesCount': -1, 'extendedLikesInfo.dislikesCount': 1}})
                 return res.sendStatus(204)
             } else if( likeStatus === 'None') {
